@@ -11,8 +11,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,35 +22,26 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @Setter
-@Table(name = "users")
-public class User {
+@Table(name = "user_virtual_accounts")
+public class UserVirtualAccount {
     @Id
     @UuidGenerator
     private String id;
-
-    @Column(length = 100)
-    private String firstName;
-
-    @Column(length = 100)
-    private String lastName;
     
-    @Column(length = 50, unique = true)
-    private String phoneNumber = null;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    @Column(length = 255, unique = true)
-    private String email;
+    @ManyToOne
+    @JoinColumn(name = "tc_id")
+    private TransactionCategories transactionCategories;
 
-    @JsonIgnore
-    @Column(length = 255)
-    private String password;
+    @ManyToOne
+    @JoinColumn(name = "provider_id")
+    private Providers providers;
 
-    @JsonIgnore
-    @Column(length = 255)
-    private String pin = null;
-
-    private Double balance = 0.; 
-
-    private String profilePictureUrl = null;
+    @Column(length = 50)
+    private String number;
 
     @JsonIgnore
     @CreationTimestamp
@@ -62,10 +54,10 @@ public class User {
     @JsonIgnore
     private Boolean isDeleted = false;
 
-    public User(String firstName, String lastName, String email, String password) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = password;
+    public UserVirtualAccount(User user, TransactionCategories transactionCategories, Providers providers, String number) {
+        this.user = user;
+        this.transactionCategories = transactionCategories;
+        this.providers = providers;
+        this.number = number;
     }
 }

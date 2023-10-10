@@ -1,4 +1,4 @@
-package alpha.payeasebe.payloads.req;
+package alpha.payeasebe.payloads.req.User;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;

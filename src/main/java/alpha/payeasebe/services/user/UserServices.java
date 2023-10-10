@@ -2,12 +2,12 @@ package alpha.payeasebe.services.user;
 
 import org.springframework.http.ResponseEntity;
 
-import alpha.payeasebe.payloads.req.ChangePINRequest;
-import alpha.payeasebe.payloads.req.ChangePasswordRequest;
-import alpha.payeasebe.payloads.req.CreatePINRequest;
-import alpha.payeasebe.payloads.req.LoginRequest;
-import alpha.payeasebe.payloads.req.RegisterRequest;
-import alpha.payeasebe.payloads.req.ResetPasswordRequest;
+import alpha.payeasebe.payloads.req.User.ChangePINRequest;
+import alpha.payeasebe.payloads.req.User.ChangePasswordRequest;
+import alpha.payeasebe.payloads.req.User.CreatePINRequest;
+import alpha.payeasebe.payloads.req.User.LoginRequest;
+import alpha.payeasebe.payloads.req.User.RegisterRequest;
+import alpha.payeasebe.payloads.req.User.ResetPasswordRequest;
 
 public interface UserServices {
     ResponseEntity<?> registerService(RegisterRequest request);
