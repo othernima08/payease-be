@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import alpha.payeasebe.configs.JwtUtil;
 import alpha.payeasebe.exceptions.custom.EntityFoundException;
 import alpha.payeasebe.models.User;
+import alpha.payeasebe.payloads.req.ChangePINRequest;
+import alpha.payeasebe.payloads.req.ChangePasswordRequest;
 import alpha.payeasebe.payloads.req.CreatePINRequest;
 import alpha.payeasebe.payloads.req.LoginRequest;
 import alpha.payeasebe.payloads.req.RegisterRequest;
@@ -134,5 +136,37 @@ public class UserServicesImpl implements UserServices {
         });
 
         return ResponseHandler.responseData(200, "Success", user); 
+    }
+
+    @Override
+    public ResponseEntity<?> changeUserPINService(ChangePINRequest request) {
+        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
+            throw new NoSuchElementException("User not found");
+        });
+
+        if (!(passwordEncoder.matches(request.getCurrentPin(), user.getPin()))) {
+            throw new NoSuchElementException("Bad Credentials: PIN doesn't match!");
+        }
+
+        user.setPin(passwordEncoder.encode(request.getNewPin()));
+        userRepository.save(user);
+
+        return ResponseHandler.responseMessage(200, "Change PIN Success", true); 
+    }
+
+    @Override
+    public ResponseEntity<?> changeUserPasswordService(ChangePasswordRequest request) {
+       User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
+            throw new NoSuchElementException("User not found");
+        });
+
+        if (!(passwordEncoder.matches(request.getCurrentPassword(), user.getPassword()))) {
+            throw new NoSuchElementException("Bad Credentials: PIN doesn't match!");
+        }
+
+        user.setPin(passwordEncoder.encode(request.getCurrentPassword()));
+        userRepository.save(user);
+
+        return ResponseHandler.responseMessage(200, "Change Password Success", true); 
     }
 }
