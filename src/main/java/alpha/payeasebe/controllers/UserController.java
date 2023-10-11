@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import alpha.payeasebe.payloads.req.User.ChangePINRequest;
 import alpha.payeasebe.payloads.req.User.ChangePasswordRequest;
 import alpha.payeasebe.payloads.req.User.CreatePINRequest;
+import alpha.payeasebe.payloads.req.User.CreatePhoneNumberRequest;
 import alpha.payeasebe.payloads.req.User.LoginRequest;
 import alpha.payeasebe.payloads.req.User.RegisterRequest;
 import alpha.payeasebe.payloads.req.User.ResetPasswordRequest;
@@ -71,5 +72,10 @@ public class UserController {
     @PutMapping("/change-pin")
      public ResponseEntity<?> changePINService(@RequestBody @Valid ChangePINRequest request) {
         return userServices.changeUserPINService(request);
+    }
+
+    @PutMapping("/add-phone-number")
+    public ResponseEntity<?> addPhoneNumberService(@RequestBody @Valid CreatePhoneNumberRequest request){
+        return userServices.addPhoneNumberService(request);
     }
 }
