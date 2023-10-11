@@ -11,4 +11,5 @@ public interface TransactionsService {
     ResponseEntity<?> getTransactionByUserId(String userId);
     ResponseEntity<?> topUpService(TopUpRequest request);
     ResponseEntity<?> transferService(TransferRequest request);
+    ResponseEntity<?> getTopUpHistoryByUserIdService(String userId);
 }

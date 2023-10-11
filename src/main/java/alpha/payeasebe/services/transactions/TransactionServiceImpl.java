@@ -1,5 +1,6 @@
 package alpha.payeasebe.services.transactions;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,10 +10,12 @@ import org.springframework.stereotype.Service;
 
 import alpha.payeasebe.models.TransactionCategories;
 import alpha.payeasebe.models.Transactions;
+import alpha.payeasebe.models.Transfers;
 import alpha.payeasebe.models.User;
 import alpha.payeasebe.payloads.req.Transactions.TopUpRequest;
 import alpha.payeasebe.payloads.req.Transactions.TransferRequest;
 import alpha.payeasebe.payloads.res.ResponseHandler;
+import alpha.payeasebe.payloads.res.ResponseShowTopUpHistory;
 import alpha.payeasebe.repositories.TransactionCategoryRepository;
 import alpha.payeasebe.repositories.TransactionsRepository;
 import alpha.payeasebe.repositories.TransferRepository;
@@ -33,8 +36,8 @@ public class TransactionServiceImpl implements TransactionsService {
 
     @Autowired
     UserValidation userValidation;
-    
-    @Autowired 
+
+    @Autowired
     PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -46,7 +49,11 @@ public class TransactionServiceImpl implements TransactionsService {
     @Override
     public Transactions createTransactionService(String userId, String transactionCategoryName, Double amount) {
         User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
-        
+
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
         TransactionCategories transactionCategories = transactionCategoryRepository.findByType(transactionCategoryName);
         transactionCategoriesValidation.validateTransactionCategory(transactionCategories);
 
@@ -68,11 +75,9 @@ public class TransactionServiceImpl implements TransactionsService {
 
         User user = transactions.getUser();
 
-        // if (!passwordEncoder.matches(request.getPin(), user.getPin())) {
-        //     transactions.setIsDeleted(true);
-        //     transactionsRepository.save(transactions);
-        //     throw new NoSuchElementException("Bad credentials: pin doesn't match!");
-        // }
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
 
         transactions.setAlreadyDone(true);
         transactionsRepository.save(transactions);
@@ -80,7 +85,8 @@ public class TransactionServiceImpl implements TransactionsService {
         user.setBalance(user.getBalance() + transactions.getAmount());
         userRepository.save(user);
 
-        return ResponseHandler.responseMessage(200, "Top up for " + user.getFirstName() + " " + user.getLastName() + " success", true);
+        return ResponseHandler.responseMessage(200,
+                "Top up for " + user.getFirstName() + " " + user.getLastName() + " success", true);
     }
 
     @Override
@@ -88,13 +94,32 @@ public class TransactionServiceImpl implements TransactionsService {
         Transactions transactions = createTransactionService(request.getUserId(), "Transfer", request.getAmount());
 
         User user = transactions.getUser();
-        User recipient = userRepository.findByPhoneNumber(request.getRecipientPhoneNumber());
 
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        User recipient = userRepository.findByPhoneNumber(request.getRecipientPhoneNumber());
         userValidation.validateUser(recipient);
+
+        if (recipient.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        if (user.getBalance() < request.getAmount()) {
+            transactions.setIsDeleted(true);
+            transactionsRepository.save(transactions);
+
+            throw new IllegalArgumentException("Insufficient balance");
+        }
+
+        Transfers transfers = new Transfers(recipient, transactions, request.getNotes());
+        transferRepository.save(transfers);
 
         if (!passwordEncoder.matches(request.getPin(), user.getPin())) {
             transactions.setIsDeleted(true);
             transactionsRepository.save(transactions);
+
             throw new NoSuchElementException("Bad credentials: pin doesn't match!");
         }
 
@@ -102,8 +127,25 @@ public class TransactionServiceImpl implements TransactionsService {
         transactionsRepository.save(transactions);
 
         user.setBalance(user.getBalance() - request.getAmount());
+        userRepository.save(user);
 
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'transferService'");
-    }    
+        recipient.setBalance(recipient.getBalance() + request.getAmount());
+        userRepository.save(recipient);
+
+        return ResponseHandler.responseMessage(200,
+                "Transfer from " + user.getFirstName() + " " + user.getLastName() + " success", true);
+    }
+
+    @Override
+    public ResponseEntity<?> getTopUpHistoryByUserIdService(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
+
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        List<ResponseShowTopUpHistory> topUpHistory = transactionsRepository.getTopUpHistoryByUserId(userId);
+
+        return ResponseHandler.responseData(200, "Get top up history data success", topUpHistory);
+    }
 }
