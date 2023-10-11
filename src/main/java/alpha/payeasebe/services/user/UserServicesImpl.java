@@ -19,12 +19,14 @@ import alpha.payeasebe.configs.JwtUtil;
 import alpha.payeasebe.exceptions.custom.EntityFoundException;
 import alpha.payeasebe.models.ResetToken;
 import alpha.payeasebe.models.User;
-import alpha.payeasebe.payloads.req.CreatePINRequest;
+import alpha.payeasebe.payloads.req.User.ChangePINRequest;
+import alpha.payeasebe.payloads.req.User.ChangePasswordRequest;
+import alpha.payeasebe.payloads.req.User.CreatePINRequest;
+import alpha.payeasebe.payloads.req.User.LoginRequest;
+import alpha.payeasebe.payloads.req.User.RegisterRequest;
+import alpha.payeasebe.payloads.req.User.ResetPasswordRequest;
 import alpha.payeasebe.payloads.req.FindUserEmail;
-import alpha.payeasebe.payloads.req.LoginRequest;
 import alpha.payeasebe.payloads.req.MailRequest;
-import alpha.payeasebe.payloads.req.RegisterRequest;
-import alpha.payeasebe.payloads.req.ResetPasswordRequest;
 import alpha.payeasebe.payloads.res.ResponseHandler;
 import alpha.payeasebe.repositories.ResetPasswordRepository;
 import alpha.payeasebe.repositories.UserRepository;
@@ -126,22 +128,6 @@ public class UserServicesImpl implements UserServices {
         return ResponseHandler.responseMessage(200, "Create PIN success!", true);
     }
 
-    // @Override
-    // public ResponseEntity<?> resetPasswordService(ResetPasswordRequest request) {
-    // if (!userRepository.existsByEmail(request.getEmailUser())) {
-    // throw new NoSuchElementException("User is not found!");
-    // }
-
-    // User user = userRepository.findByEmail(request.getEmailUser());
-
-    // userValidation.validateUser(user);
-
-    // user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-    // userRepository.save(user);
-
-    // return ResponseHandler.responseMessage(200, "Reset password success", true);
-    // }
-
     @Override
     public ResponseEntity<?> getUserByIdService(String id) {
         User user = userRepository.findById(id).orElseThrow(() -> {
@@ -194,5 +180,37 @@ public class UserServicesImpl implements UserServices {
         }
 
         return ResponseHandler.responseData(200, "Your Password Changed successfully!", user);
+    }
+
+    @Override
+    public ResponseEntity<?> changeUserPINService(ChangePINRequest request) {
+        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
+            throw new NoSuchElementException("User not found");
+        });
+
+        if (!(passwordEncoder.matches(request.getCurrentPin(), user.getPin()))) {
+            throw new NoSuchElementException("Bad Credentials: PIN doesn't match!");
+        }
+
+        user.setPin(passwordEncoder.encode(request.getNewPin()));
+        userRepository.save(user);
+
+        return ResponseHandler.responseMessage(200, "Change PIN Success", true); 
+    }
+
+    @Override
+    public ResponseEntity<?> changeUserPasswordService(ChangePasswordRequest request) {
+       User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
+            throw new NoSuchElementException("User not found");
+        });
+
+        if (!(passwordEncoder.matches(request.getCurrentPassword(), user.getPassword()))) {
+            throw new NoSuchElementException("Bad Credentials: PIN doesn't match!");
+        }
+
+        user.setPin(passwordEncoder.encode(request.getCurrentPassword()));
+        userRepository.save(user);
+
+        return ResponseHandler.responseMessage(200, "Change Password Success", true); 
     }
 }

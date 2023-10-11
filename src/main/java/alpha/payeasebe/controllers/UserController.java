@@ -11,11 +11,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import alpha.payeasebe.payloads.req.CreatePINRequest;
+import alpha.payeasebe.payloads.req.User.ChangePINRequest;
+import alpha.payeasebe.payloads.req.User.ChangePasswordRequest;
+import alpha.payeasebe.payloads.req.User.CreatePINRequest;
+import alpha.payeasebe.payloads.req.User.LoginRequest;
+import alpha.payeasebe.payloads.req.User.RegisterRequest;
+import alpha.payeasebe.payloads.req.User.ResetPasswordRequest;
 import alpha.payeasebe.payloads.req.FindUserEmail;
-import alpha.payeasebe.payloads.req.LoginRequest;
-import alpha.payeasebe.payloads.req.RegisterRequest;
-import alpha.payeasebe.payloads.req.ResetPasswordRequest;
 import alpha.payeasebe.services.user.UserServices;
 import jakarta.validation.Valid;
 
@@ -59,5 +61,15 @@ public class UserController {
     public ResponseEntity<?> findUserEMail( @RequestParam(value = "token") String token, @RequestBody ResetPasswordRequest
     request) {
         return userServices.resetPasswordService(token,request);
+    }
+
+    @PutMapping("/change-password")
+     public ResponseEntity<?> changePasswordService(@RequestBody @Valid ChangePasswordRequest request) {
+        return userServices.changeUserPasswordService(request);
+    }
+
+    @PutMapping("/change-pin")
+     public ResponseEntity<?> changePINService(@RequestBody @Valid ChangePINRequest request) {
+        return userServices.changeUserPINService(request);
     }
 }

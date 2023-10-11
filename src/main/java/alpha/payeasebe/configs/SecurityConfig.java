@@ -44,7 +44,7 @@ public class SecurityConfig {
 
         //authorize request
         httpSecurity.authorizeHttpRequests(auth -> {
-             auth.requestMatchers("/**").permitAll()
+             auth.requestMatchers("/**").permitAll() //login, register, reset password, create pin
              .anyRequest().fullyAuthenticated(); 
         });
 
