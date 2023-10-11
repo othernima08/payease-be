@@ -8,8 +8,5 @@ public class TopUpRequest {
     @NotEmpty(message = "User id is required")
     private String userId;
 
-    @NotEmpty(message = "PIN is required")
-    private String pin;
-
     private Double amount;
 }

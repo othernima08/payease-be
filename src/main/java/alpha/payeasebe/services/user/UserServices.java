@@ -2,6 +2,7 @@ package alpha.payeasebe.services.user;
 
 import org.springframework.http.ResponseEntity;
 
+import alpha.payeasebe.payloads.req.FindUserEmail;
 import alpha.payeasebe.payloads.req.User.ChangePINRequest;
 import alpha.payeasebe.payloads.req.User.ChangePasswordRequest;
 import alpha.payeasebe.payloads.req.User.CreatePINRequest;
@@ -16,6 +17,7 @@ public interface UserServices {
     ResponseEntity<?> createUserPINService(CreatePINRequest request);
     ResponseEntity<?> changeUserPINService(ChangePINRequest request);
     ResponseEntity<?> changeUserPasswordService(ChangePasswordRequest request);
-    ResponseEntity<?> resetPasswordService(ResetPasswordRequest request);
     ResponseEntity<?> getUserByIdService(String id);
+    ResponseEntity<?> findUserByEmail(FindUserEmail request);
+    ResponseEntity<?> resetPasswordService(String token, ResetPasswordRequest request);
 }

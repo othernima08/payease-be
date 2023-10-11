@@ -11,9 +11,8 @@ public class RegisterRequest {
     private String firstName;
     
     private String lastName;
-
-    @Email(message = "Must be email format!", regexp = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$")
     @NotEmpty(message = "Email is required!")
+    @Email(message = "Must be email format!", regexp = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$")
     private String email;
 
     @NotEmpty(message = "Password is required!")

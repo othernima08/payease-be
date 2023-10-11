@@ -11,9 +11,11 @@ import alpha.payeasebe.models.TransactionCategories;
 import alpha.payeasebe.models.Transactions;
 import alpha.payeasebe.models.User;
 import alpha.payeasebe.payloads.req.Transactions.TopUpRequest;
+import alpha.payeasebe.payloads.req.Transactions.TransferRequest;
 import alpha.payeasebe.payloads.res.ResponseHandler;
 import alpha.payeasebe.repositories.TransactionCategoryRepository;
 import alpha.payeasebe.repositories.TransactionsRepository;
+import alpha.payeasebe.repositories.TransferRepository;
 import alpha.payeasebe.repositories.UserRepository;
 import alpha.payeasebe.validators.TransactionCategoriesValidation;
 import alpha.payeasebe.validators.UserValidation;
@@ -34,6 +36,9 @@ public class TransactionServiceImpl implements TransactionsService {
     
     @Autowired 
     PasswordEncoder passwordEncoder;
+
+    @Autowired
+    TransferRepository transferRepository;
 
     @Autowired
     TransactionCategoriesValidation transactionCategoriesValidation;
@@ -62,11 +67,12 @@ public class TransactionServiceImpl implements TransactionsService {
         Transactions transactions = createTransactionService(request.getUserId(), "Top Up", request.getAmount());
 
         User user = transactions.getUser();
-        System.out.println(user);
 
-        if (!passwordEncoder.matches(request.getPin(), user.getPin())) {
-            throw new NoSuchElementException("Bad credentials: pin doesn't match!");
-        }
+        // if (!passwordEncoder.matches(request.getPin(), user.getPin())) {
+        //     transactions.setIsDeleted(true);
+        //     transactionsRepository.save(transactions);
+        //     throw new NoSuchElementException("Bad credentials: pin doesn't match!");
+        // }
 
         transactions.setAlreadyDone(true);
         transactionsRepository.save(transactions);
@@ -75,5 +81,29 @@ public class TransactionServiceImpl implements TransactionsService {
         userRepository.save(user);
 
         return ResponseHandler.responseMessage(200, "Top up for " + user.getFirstName() + " " + user.getLastName() + " success", true);
+    }
+
+    @Override
+    public ResponseEntity<?> transferService(TransferRequest request) {
+        Transactions transactions = createTransactionService(request.getUserId(), "Transfer", request.getAmount());
+
+        User user = transactions.getUser();
+        User recipient = userRepository.findByPhoneNumber(request.getRecipientPhoneNumber());
+
+        userValidation.validateUser(recipient);
+
+        if (!passwordEncoder.matches(request.getPin(), user.getPin())) {
+            transactions.setIsDeleted(true);
+            transactionsRepository.save(transactions);
+            throw new NoSuchElementException("Bad credentials: pin doesn't match!");
+        }
+
+        transactions.setAlreadyDone(true);
+        transactionsRepository.save(transactions);
+
+        user.setBalance(user.getBalance() - request.getAmount());
+
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'transferService'");
     }    
 }

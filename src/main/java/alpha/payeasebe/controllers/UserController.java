@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import alpha.payeasebe.payloads.req.User.ChangePINRequest;
@@ -16,6 +17,7 @@ import alpha.payeasebe.payloads.req.User.CreatePINRequest;
 import alpha.payeasebe.payloads.req.User.LoginRequest;
 import alpha.payeasebe.payloads.req.User.RegisterRequest;
 import alpha.payeasebe.payloads.req.User.ResetPasswordRequest;
+import alpha.payeasebe.payloads.req.FindUserEmail;
 import alpha.payeasebe.services.user.UserServices;
 import jakarta.validation.Valid;
 
@@ -50,9 +52,15 @@ public class UserController {
         return userServices.createUserPINService(request);
     }
 
-    @PutMapping("/reset-password")
-    public ResponseEntity<?> resetPasswordService(@RequestBody @Valid ResetPasswordRequest request) {
-        return userServices.resetPasswordService(request);
+    @PutMapping("/find-email-reset")
+    public ResponseEntity<?> findUserEMail( @RequestBody FindUserEmail request) {
+        return userServices.findUserByEmail(request);
+    }
+
+     @PutMapping("/reset-password")
+    public ResponseEntity<?> findUserEMail( @RequestParam(value = "token") String token, @RequestBody ResetPasswordRequest
+    request) {
+        return userServices.resetPasswordService(token,request);
     }
 
     @PutMapping("/change-password")
