@@ -17,6 +17,7 @@ public interface UserServices {
     ResponseEntity<?> getUsersService();
     ResponseEntity<?> createUserPINService(CreatePINRequest request);
     ResponseEntity<?> addPhoneNumberService(CreatePhoneNumberRequest request);
+    ResponseEntity<?> deletePhoneNumberService(String userId);
     ResponseEntity<?> changeUserPINService(ChangePINRequest request);
     ResponseEntity<?> changeUserPasswordService(ChangePasswordRequest request);
     ResponseEntity<?> getUserByIdService(String id);

@@ -247,5 +247,25 @@ public class UserServicesImpl implements UserServices {
     
         return ResponseHandler.responseMessage(200, "Phone number added successfully", true);
     }
+
+    @Override
+    public ResponseEntity<?> deletePhoneNumberService(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> {
+            throw new NoSuchElementException("User not found");
+        });
+    
+        userValidation.validateUser(user);
+    
+        // Cek jika nomor HP sudah ada atau tidak
+        if (user.getPhoneNumber() == null || user.getPhoneNumber().isEmpty()) {
+            throw new NoSuchElementException("Phone number is not found!");
+        }
+    
+        // Hapus nomor HP
+        user.setPhoneNumber(null);
+        userRepository.save(user);
+    
+        return ResponseHandler.responseMessage(200, "Phone number deleted successfully", true);
+    }
     
 }
