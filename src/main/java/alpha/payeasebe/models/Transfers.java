@@ -6,12 +6,11 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,37 +20,33 @@ import lombok.Setter;
 @Setter
 @Getter
 @NoArgsConstructor
-@Table(name = "transactions")
-public class Transactions {
+@Table(name = "transfers")
+public class Transfers {
     @Id
     @UuidGenerator
     private String id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "recipient_id")
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "transaction_categories_id")
-    private TransactionCategories transactionCategories;
+    @OneToOne
+    @JoinColumn(name = "transaction_id")
+    private Transactions transactions;
 
-    private Double amount;
+    private String notes = "";
 
     @CreationTimestamp
-    private LocalDateTime transactionTime;
-
-    private Boolean alreadyDone = false;
-
-    @JsonIgnore
+    private LocalDateTime createdAt;
+    
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @JsonIgnore
     private Boolean isDeleted = false;
 
-    public Transactions(User user, TransactionCategories transactionCategories, Double amount) {
+    public Transfers(User user, Transactions transactions, String notes) {
         this.user = user;
-        this.transactionCategories = transactionCategories;
-        this.amount = amount;
+        this.transactions = transactions;
+        this.notes = notes;
     }
 }
