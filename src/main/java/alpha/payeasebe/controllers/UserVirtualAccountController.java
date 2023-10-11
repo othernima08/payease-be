@@ -9,6 +9,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import alpha.payeasebe.services.virtualAccounts.UserVirtualAccountService;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+
 @RestController
 @RequestMapping("/virtual-accounts")
 public class UserVirtualAccountController {
@@ -18,5 +23,15 @@ public class UserVirtualAccountController {
     @PostMapping()
     public ResponseEntity<?> registerService(@RequestParam String phoneNumber) {
         return userVirtualAccountService.generateUserVirtualAccountsService(phoneNumber);
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> getVirtualAccountByUserId(@PathVariable String userId) {
+        return userVirtualAccountService.getUserVirtualAccountsService(userId);
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> deleteVirtualAccountByUserId(@PathVariable String userId) {
+        return userVirtualAccountService.deleteUserVirtualAccountsService(userId);
     }
 }
