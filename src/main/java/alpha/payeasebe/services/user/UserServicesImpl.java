@@ -43,8 +43,8 @@ public class UserServicesImpl implements UserServices {
     @Autowired
     UserValidation userValidation;
 
-     @Autowired
-  MailService mailService;
+    @Autowired
+    MailService mailService;
 
     @Autowired
     JwtUtil jwtUtil;
@@ -166,11 +166,7 @@ public class UserServicesImpl implements UserServices {
         StringBuilder buildMessageMail = new StringBuilder();
         buildMessageMail.append("To reset your password, please check your email by click here: ");
         buildMessageMail.append(
-                ServletUriComponentsBuilder
-                        .fromCurrentContextPath()
-                        .path("/users/reset-password")
-                        .queryParam("token", resetToken.getToken())
-                        .toUriString());
+                "http://localhost:5173/create-password/" + resetToken.getToken());
 
         mailService.sendMail(new MailRequest(user.getEmail(), "Reset your password!", buildMessageMail.toString()));
 
@@ -178,21 +174,35 @@ public class UserServicesImpl implements UserServices {
     }
 
     @Override
-    public ResponseEntity<?> resetPasswordService(String token, ResetPasswordRequest request) {
+    public ResponseEntity<?> checkTokenService(String token) {
         ResetToken resetToken = resetPasswordRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Couldn't verify the email!"));
+                .orElseThrow(() -> new RuntimeException("Token is Invalid!"));
 
         User user = resetToken.getUser();
 
+        return ResponseHandler.responseData(200, "Token Is Valid!", user);
+    }
+
+    @Override
+    public ResponseEntity<?> changePasswordService(String token, ResetPasswordRequest request) {
+        ResetToken resetToken = resetPasswordRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Token is Invalid!"));
+
+        User user = resetToken.getUser();
+        
+        String passwordFix;
+        userValidation.validateUser(user);
+
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new RuntimeException("Password and confirmation do not match!");
+            throw new RuntimeException("Please Check your password!");
         }
 
         else {
-            user.setPassword(request.getConfirmPassword());
-            userRepository.save(user);
+            passwordFix = request.getConfirmPassword();
+            user.setPassword(passwordFix);
         }
 
-        return ResponseHandler.responseData(200, "Your Password Changed successfully!", user);
+        return ResponseHandler.responseData(200, "Password is changed!", user);
+
     }
 }

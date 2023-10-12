@@ -55,9 +55,14 @@ public class UserController {
         return userServices.findUserByEmail(request);
     }
 
-     @PutMapping("/reset-password")
-    public ResponseEntity<?> findUserEMail( @RequestParam(value = "token") String token, @RequestBody ResetPasswordRequest
-    request) {
-        return userServices.resetPasswordService(token,request);
+     @GetMapping("/reset-password")
+    public ResponseEntity<?> findUserEMail( @RequestParam(value = "token") String token) {
+        return userServices.checkTokenService(token);
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword( @RequestParam(value = "token") String token, @RequestBody ResetPasswordRequest request) {
+        return userServices.changePasswordService(token, request);
     }
 }
+

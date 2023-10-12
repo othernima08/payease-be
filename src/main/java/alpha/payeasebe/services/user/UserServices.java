@@ -16,5 +16,7 @@ public interface UserServices {
     // ResponseEntity<?> resetPasswordService(ResetPasswordRequest request);
     ResponseEntity<?> getUserByIdService(String id);
     ResponseEntity<?> findUserByEmail(FindUserEmail request);
-    ResponseEntity<?> resetPasswordService(String token, ResetPasswordRequest request);
+    ResponseEntity<?> checkTokenService(String token);
+     ResponseEntity<?> changePasswordService(String token, ResetPasswordRequest request);
 }
+
