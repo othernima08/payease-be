@@ -59,16 +59,15 @@ public class UserController {
         return userServices.findUserByEmail(request);
     }
 
-    @PutMapping("/reset-password")
-    public ResponseEntity<?> findUserEMail(@RequestParam(value = "token") String token,
-            @RequestBody ResetPasswordRequest request) {
-        return userServices.resetPasswordService(token, request);
+     @GetMapping("/reset-password")
+    public ResponseEntity<?> findUserEMail( @RequestParam(value = "token") String token) {
+        return userServices.checkTokenService(token);
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<?> changePasswordService(@RequestBody @Valid ChangePasswordRequest request) {
-        return userServices.changeUserPasswordService(request);
-    }
+    public ResponseEntity<?> changePassword( @RequestParam(value = "token") String token, @RequestBody ResetPasswordRequest request) {
+        return userServices.changePasswordService(token, request);
+
 
     @PutMapping("/change-pin")
     public ResponseEntity<?> changePINService(@RequestBody @Valid ChangePINRequest request) {
@@ -83,5 +82,7 @@ public class UserController {
     @DeleteMapping("/delete-phone-number/{userId}")
     public ResponseEntity<?> deleteUserPhoneNumber(@PathVariable String userId) {
         return userServices.deletePhoneNumberService(userId);
+
     }
 }
+

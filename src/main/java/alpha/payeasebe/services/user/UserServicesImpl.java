@@ -1,5 +1,6 @@
 package alpha.payeasebe.services.user;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,8 +48,8 @@ public class UserServicesImpl implements UserServices {
     @Autowired
     UserValidation userValidation;
 
-     @Autowired
-  MailService mailService;
+    @Autowired
+    MailService mailService;
 
     @Autowired
     JwtUtil jwtUtil;
@@ -149,39 +150,69 @@ public class UserServicesImpl implements UserServices {
         User user = userRepository.findByEmail(request.getEmail());
 
         ResetToken resetToken = new ResetToken(user);
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime expireDateTime = now.plusMinutes(5);
+        resetToken.setExpiryDateTime(expireDateTime);
+
         resetPasswordRepository.save(resetToken);
 
         StringBuilder buildMessageMail = new StringBuilder();
         buildMessageMail.append("To reset your password, please check your email by click here: ");
         buildMessageMail.append(
-                ServletUriComponentsBuilder
-                        .fromCurrentContextPath()
-                        .path("/users/reset-password")
-                        .queryParam("token", resetToken.getToken())
-                        .toUriString());
-
+                "http://localhost:5173/create-password/" + resetToken.getToken());
+        buildMessageMail.append(
+                "    /n This link is expired in 5 minutes.");
         mailService.sendMail(new MailRequest(user.getEmail(), "Reset your password!", buildMessageMail.toString()));
 
         return ResponseHandler.responseData(201, "Password Reset Succesfull!", user);
     }
 
     @Override
-    public ResponseEntity<?> resetPasswordService(String token, ResetPasswordRequest request) {
+    public ResponseEntity<?> checkTokenService(String token) {
         ResetToken resetToken = resetPasswordRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Couldn't verify the email!"));
+                .orElseThrow(() -> new RuntimeException("Token is Invalid!"));
+
+        // tokenvalidation
+
+        LocalDateTime currentTime = LocalDateTime.now();
+        if (resetToken.getExpiryDateTime() != null && currentTime.isAfter(resetToken.getExpiryDateTime())) {
+            throw new RuntimeException("Token has expired!");
+        }
+
+        // used or not
+        if (!resetToken.getIsActive().equals(true)) {
+            throw new RuntimeException("This token already used, please go to forgot-password page.");
+        }
 
         User user = resetToken.getUser();
 
+        return ResponseHandler.responseData(200, "Token Is Valid!", user);
+    }
+
+    @Override
+    public ResponseEntity<?> changePasswordService(String token, ResetPasswordRequest request) {
+        ResetToken resetToken = resetPasswordRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Token is Invalid!"));
+
+        User user = resetToken.getUser();
+
+        String passwordFix;
+        userValidation.validateUser(user);
+
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new RuntimeException("Password and confirmation do not match!");
+            throw new RuntimeException("New password and confirmation doesnt match!");
         }
 
         else {
-            user.setPassword(request.getConfirmPassword());
+            passwordFix = request.getConfirmPassword();
+            user.setPassword(passwordEncoder.encode(passwordFix));
+            resetToken.setIsActive(false);
             userRepository.save(user);
         }
 
-        return ResponseHandler.responseData(200, "Your Password Changed successfully!", user);
+        return ResponseHandler.responseData(200, "Password is changed!", user);
+
     }
 
     @Override
