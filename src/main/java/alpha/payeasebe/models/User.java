@@ -54,11 +54,10 @@ public class User {
     private Double balance = 0.; 
 
     @Lob
-    @Column(columnDefinition = "MEDIUMLOB")
+    @Column(columnDefinition = "MEDIUMBLOB")
     @JsonIgnore
     private byte[] pictureProfile;
 
-    @Column
     private String sharedUrl = null;
 
     @JsonIgnore
