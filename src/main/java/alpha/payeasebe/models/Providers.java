@@ -1,8 +1,6 @@
 package alpha.payeasebe.models;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -13,9 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,33 +20,14 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @Setter
-@Table(name = "users")
-public class User {
+@Table(name = "providers")
+public class Providers {
     @Id
     @UuidGenerator
     private String id;
 
-    @Column(length = 100)
-    private String firstName;
-
-    @Column(length = 100)
-    private String lastName;
-    
-    @Column(length = 50, unique = true)
-    private String phoneNumber = null;
-
     @Column(length = 255, unique = true)
-    private String email;
-
-    @JsonIgnore
-    @Column(length = 255)
-    private String password;
-
-    @JsonIgnore
-    @Column(length = 255)
-    private String pin = null;
-
-    private Double balance = 0.; 
+    private String name;
 
     private String profilePictureUrl = null;
 
@@ -65,14 +42,8 @@ public class User {
     @JsonIgnore
     private Boolean isDeleted = false;
 
-
-    @OneToMany(mappedBy = "user")
-    private List<ResetToken> resetTokens = new ArrayList<>();
-
-    public User(String firstName, String lastName, String email, String password) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = password;
-    }
+    public Providers(String name, String profilePictureUrl) {
+        this.name = name;
+        this.profilePictureUrl = profilePictureUrl;
+    }   
 }
