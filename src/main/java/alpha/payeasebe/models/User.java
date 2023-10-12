@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
@@ -52,7 +53,13 @@ public class User {
 
     private Double balance = 0.; 
 
-    private String profilePictureUrl = null;
+    @Lob
+    @Column(columnDefinition = "MEDIUMLOB")
+    @JsonIgnore
+    private byte[] pictureProfile;
+
+    @Column
+    private String sharedUrl = null;
 
     @JsonIgnore
     @CreationTimestamp

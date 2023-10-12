@@ -1,5 +1,7 @@
 package alpha.payeasebe.controllers;
 
+import java.io.IOException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import alpha.payeasebe.payloads.req.User.ChangePINRequest;
 import alpha.payeasebe.payloads.req.User.ChangePasswordRequest;
@@ -71,5 +74,10 @@ public class UserController {
     @PutMapping("/change-pin")
      public ResponseEntity<?> changePINService(@RequestBody @Valid ChangePINRequest request) {
         return userServices.changeUserPINService(request);
+    }
+
+    @PutMapping("/update-image")
+    public ResponseEntity<?> updateImageService(@RequestParam(value = "file") MultipartFile file, @RequestParam(value = "userId") String userId) throws IOException{
+        return userServices.storeImage(file, userId);
     }
 }
