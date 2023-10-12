@@ -10,14 +10,17 @@ import alpha.payeasebe.payloads.req.User.CreatePhoneNumberRequest;
 import alpha.payeasebe.payloads.req.User.LoginRequest;
 import alpha.payeasebe.payloads.req.User.RegisterRequest;
 import alpha.payeasebe.payloads.req.User.ResetPasswordRequest;
+import alpha.payeasebe.payloads.req.User.VerifyPINRequest;
 
 public interface UserServices {
     ResponseEntity<?> registerService(RegisterRequest request);
     ResponseEntity<?> loginService(LoginRequest request);
     ResponseEntity<?> getUsersService();
     ResponseEntity<?> createUserPINService(CreatePINRequest request);
+
     ResponseEntity<?> addPhoneNumberService(CreatePhoneNumberRequest request);
     ResponseEntity<?> deletePhoneNumberService(String userId);
+    ResponseEntity<?> verifyUserPINService(VerifyPINRequest request);
     ResponseEntity<?> changeUserPINService(ChangePINRequest request);
     ResponseEntity<?> changeUserPasswordService(ChangePasswordRequest request);
     ResponseEntity<?> getUserByIdService(String id);

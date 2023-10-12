@@ -19,6 +19,7 @@ import alpha.payeasebe.payloads.req.User.CreatePhoneNumberRequest;
 import alpha.payeasebe.payloads.req.User.LoginRequest;
 import alpha.payeasebe.payloads.req.User.RegisterRequest;
 import alpha.payeasebe.payloads.req.User.ResetPasswordRequest;
+import alpha.payeasebe.payloads.req.User.VerifyPINRequest;
 import alpha.payeasebe.payloads.req.FindUserEmail;
 import alpha.payeasebe.services.user.UserServices;
 import jakarta.validation.Valid;
@@ -60,8 +61,7 @@ public class UserController {
     }
 
     @PutMapping("/reset-password")
-    public ResponseEntity<?> findUserEMail(@RequestParam(value = "token") String token,
-            @RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<?> findUserEMail(@RequestParam(value = "token") String token, @RequestBody ResetPasswordRequest request) {
         return userServices.resetPasswordService(token, request);
     }
 
@@ -73,6 +73,11 @@ public class UserController {
     @PutMapping("/change-pin")
     public ResponseEntity<?> changePINService(@RequestBody @Valid ChangePINRequest request) {
         return userServices.changeUserPINService(request);
+    }
+
+    @PutMapping("/verify-pin")
+    public ResponseEntity<?> verifyPINService(@RequestBody @Valid VerifyPINRequest request) {
+        return userServices.verifyUserPINService(request);
     }
 
     @PutMapping("/add-phone-number")

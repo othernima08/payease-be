@@ -26,12 +26,14 @@ import alpha.payeasebe.payloads.req.User.CreatePhoneNumberRequest;
 import alpha.payeasebe.payloads.req.User.LoginRequest;
 import alpha.payeasebe.payloads.req.User.RegisterRequest;
 import alpha.payeasebe.payloads.req.User.ResetPasswordRequest;
+import alpha.payeasebe.payloads.req.User.VerifyPINRequest;
 import alpha.payeasebe.payloads.req.FindUserEmail;
 import alpha.payeasebe.payloads.req.MailRequest;
 import alpha.payeasebe.payloads.res.ResponseHandler;
 import alpha.payeasebe.repositories.ResetPasswordRepository;
 import alpha.payeasebe.repositories.UserRepository;
 import alpha.payeasebe.services.mail.MailService;
+import alpha.payeasebe.services.virtualAccounts.UserVirtualAccountService;
 import alpha.payeasebe.validators.UserValidation;
 import jakarta.validation.ValidationException;
 
@@ -47,8 +49,11 @@ public class UserServicesImpl implements UserServices {
     @Autowired
     UserValidation userValidation;
 
-     @Autowired
-  MailService mailService;
+    @Autowired
+    UserVirtualAccountService userVirtualAccountService;
+
+    @Autowired
+    MailService mailService;
 
     @Autowired
     JwtUtil jwtUtil;
@@ -190,19 +195,15 @@ public class UserServicesImpl implements UserServices {
             throw new NoSuchElementException("User not found");
         });
 
-        if (!(passwordEncoder.matches(request.getCurrentPin(), user.getPin()))) {
-            throw new NoSuchElementException("Bad Credentials: PIN doesn't match!");
-        }
-
         user.setPin(passwordEncoder.encode(request.getNewPin()));
         userRepository.save(user);
 
-        return ResponseHandler.responseMessage(200, "Change PIN Success", true); 
+        return ResponseHandler.responseMessage(200, "Change PIN Success", true);
     }
 
     @Override
     public ResponseEntity<?> changeUserPasswordService(ChangePasswordRequest request) {
-       User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
+        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
             throw new NoSuchElementException("User not found");
         });
 
@@ -213,7 +214,7 @@ public class UserServicesImpl implements UserServices {
         user.setPin(passwordEncoder.encode(request.getCurrentPassword()));
         userRepository.save(user);
 
-        return ResponseHandler.responseMessage(200, "Change Password Success", true); 
+        return ResponseHandler.responseMessage(200, "Change Password Success", true);
     }
 
     @Override
@@ -221,30 +222,32 @@ public class UserServicesImpl implements UserServices {
         User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
             throw new NoSuchElementException("User not found");
         });
-    
+
         userValidation.validateUser(user);
-    
+
         // Cek no hp user
         if (user.getPhoneNumber() != null && !user.getPhoneNumber().isEmpty()) {
             throw new EntityFoundException("Phone number is already added!");
         }
-    
+
         String phoneNumber = request.getPhoneNumber();
-        
+
         // Validasi nomor HP
         if (!phoneNumber.matches("^[0-9]*$") || phoneNumber.length() < 12 || phoneNumber.length() > 13) {
             throw new ValidationException("Invalid phone number format or length");
         }
-        
+
         // Cek apakah nomor HP sudah ada dalam database
         User existingUserWithPhoneNumber = userRepository.findByPhoneNumber(phoneNumber);
         if (existingUserWithPhoneNumber != null) {
             throw new EntityFoundException("Phone number is already in use by another user!");
         }
-    
+
         user.setPhoneNumber(phoneNumber);
         userRepository.save(user);
-    
+
+        userVirtualAccountService.generateUserVirtualAccountsService(phoneNumber);
+
         return ResponseHandler.responseMessage(200, "Phone number added successfully", true);
     }
 
@@ -253,19 +256,34 @@ public class UserServicesImpl implements UserServices {
         User user = userRepository.findById(userId).orElseThrow(() -> {
             throw new NoSuchElementException("User not found");
         });
-    
+
         userValidation.validateUser(user);
-    
+
         // Cek jika nomor HP sudah ada atau tidak
         if (user.getPhoneNumber() == null || user.getPhoneNumber().isEmpty()) {
             throw new NoSuchElementException("Phone number is not found!");
         }
-    
+
         // Hapus nomor HP
         user.setPhoneNumber(null);
         userRepository.save(user);
-    
+
+        userVirtualAccountService.deleteUserVirtualAccountsService(userId);
+
         return ResponseHandler.responseMessage(200, "Phone number deleted successfully", true);
     }
-    
+
+    @Override
+    public ResponseEntity<?> verifyUserPINService(VerifyPINRequest request) {
+        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
+            throw new NoSuchElementException("User not found");
+        });
+
+        if (!(passwordEncoder.matches(request.getCurrentPin(), user.getPin()))) {
+            throw new NoSuchElementException("Bad Credentials: PIN doesn't match!");
+        }
+
+        return ResponseHandler.responseMessage(200, "PIN match", true);
+    }
+
 }
