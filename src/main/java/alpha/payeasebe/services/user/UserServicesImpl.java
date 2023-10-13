@@ -128,6 +128,10 @@ public class UserServicesImpl implements UserServices {
 
         userValidation.validateUser(user);
 
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
+
         user.setPin(passwordEncoder.encode(request.getPin()));
 
         userRepository.save(user);
@@ -153,6 +157,10 @@ public class UserServicesImpl implements UserServices {
 
         User user = userRepository.findByEmail(request.getEmail());
 
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
+
         ResetToken resetToken = new ResetToken(user);
         resetPasswordRepository.save(resetToken);
 
@@ -177,6 +185,10 @@ public class UserServicesImpl implements UserServices {
 
         User user = resetToken.getUser();
 
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
+
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new RuntimeException("Password and confirmation do not match!");
         }
@@ -195,6 +207,10 @@ public class UserServicesImpl implements UserServices {
             throw new NoSuchElementException("User not found");
         });
 
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
+
         user.setPin(passwordEncoder.encode(request.getNewPin()));
         userRepository.save(user);
 
@@ -207,8 +223,12 @@ public class UserServicesImpl implements UserServices {
             throw new NoSuchElementException("User not found");
         });
 
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
+
         if (!(passwordEncoder.matches(request.getCurrentPassword(), user.getPassword()))) {
-            throw new NoSuchElementException("Bad Credentials: PIN doesn't match!");
+            throw new NoSuchElementException("Bad Credentials: Password doesn't match!");
         }
 
         user.setPin(passwordEncoder.encode(request.getCurrentPassword()));
@@ -223,7 +243,9 @@ public class UserServicesImpl implements UserServices {
             throw new NoSuchElementException("User not found");
         });
 
-        userValidation.validateUser(user);
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
 
         // Cek no hp user
         if (user.getPhoneNumber() != null && !user.getPhoneNumber().isEmpty()) {
@@ -259,6 +281,10 @@ public class UserServicesImpl implements UserServices {
 
         userValidation.validateUser(user);
 
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
+
         // Cek jika nomor HP sudah ada atau tidak
         if (user.getPhoneNumber() == null || user.getPhoneNumber().isEmpty()) {
             throw new NoSuchElementException("Phone number is not found!");
@@ -278,6 +304,10 @@ public class UserServicesImpl implements UserServices {
         User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
             throw new NoSuchElementException("User not found");
         });
+
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
 
         if (!(passwordEncoder.matches(request.getCurrentPin(), user.getPin()))) {
             throw new NoSuchElementException("Bad Credentials: PIN doesn't match!");
