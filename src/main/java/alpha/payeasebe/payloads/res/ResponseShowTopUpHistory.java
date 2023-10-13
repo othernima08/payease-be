@@ -4,7 +4,10 @@ import java.time.LocalDateTime;
 
 public interface ResponseShowTopUpHistory {
     String getId();
-    Double getAmount();
-    LocalDateTime getTransaction_time();
+    String getType();
+    String getName();
+    String getProfile_picture_url();
     String getStatus();
+    LocalDateTime getTransaction_time();
+    Double getAmount();
 }
