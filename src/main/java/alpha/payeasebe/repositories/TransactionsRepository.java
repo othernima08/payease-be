@@ -30,7 +30,7 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
             "GROUP BY tu.id", nativeQuery = true)
     List<ResponseShowTopUpHistory> getTopUpHistoryByUserIdAndStatus(String userId, Boolean isDeleted);
 
-     @Query(value = "SELECT tf.id, CONCAT(u.first_name, ' ', u.last_name) AS name, u.shared_url AS profile_picture_url, CONCAT(tc.type, ' To') AS type, t.transaction_time, t.amount\r\n" + //
+     @Query(value = "SELECT tf.id, CONCAT(u.first_name, ' ', u.last_name) AS name, u.shared_url AS profile_picture_url, CONCAT(tc.type, ' to') AS type, t.transaction_time, t.amount\r\n" + //
              "FROM transfers tf\r\n" + //
              "JOIN users u ON tf.recipient_id = u.id\r\n" + //
              "JOIN transactions t ON t.id = tf.transaction_id\r\n" + //
@@ -39,7 +39,7 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
              "GROUP BY tf.id", nativeQuery = true)
     List<ResponseShowTransactionHistory> getTransferToHistoryByUserId(String userId);
 
-    @Query(value = "SELECT tf.id, CONCAT(u.first_name, ' ', u.last_name) AS name, u.shared_url AS profile_picture_url, CONCAT(tc.type, ' To') AS type, t.transaction_time, t.amount\r\n" + //
+    @Query(value = "SELECT tf.id, CONCAT(u.first_name, ' ', u.last_name) AS name, u.shared_url AS profile_picture_url, CONCAT(tc.type, ' from') AS type, t.transaction_time, t.amount\r\n" + //
             "FROM transfers tf\r\n" + //
             "JOIN transactions t ON t.id = tf.transaction_id\r\n" + //
             "JOIN users u ON t.user_id= u.id\r\n" + //

@@ -14,4 +14,7 @@ public interface TransactionsService {
     ResponseEntity<?> getTopUpHistoryByUserIdService(String userId);
     ResponseEntity<?> getTopUpHistoryByUserIdAndStatusService(String userId, Boolean isDeleted);
     ResponseEntity<?> getTransactionHistoryByUserIdService(String userId);
+    // ResponseEntity<?> getIncomeTransactionHistoryByUserIdService(String userId);
+    // ResponseEntity<?> getExpenseTransactionHistoryByUserIdService(String userId);
+    ResponseEntity<?> getTransactionHistoryByUserIdAndTypeService(String userId, Boolean isIncome);
 }

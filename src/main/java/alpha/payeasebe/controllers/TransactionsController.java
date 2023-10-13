@@ -46,4 +46,14 @@ public class TransactionsController {
     public ResponseEntity<?> getTopUpHistoryByUserIdAndStatus(@RequestParam String userId, @RequestParam Boolean isSuccess) {
         return transactionsService.getTopUpHistoryByUserIdAndStatusService(userId, isSuccess);
     }
+
+    @GetMapping("/transaction-history/{userId}")
+    public ResponseEntity<?> getTransactionHistoryByUserId(@PathVariable String userId) {
+        return transactionsService.getTransactionHistoryByUserIdService(userId);
+    }
+
+    @GetMapping("/transaction-history")
+    public ResponseEntity<?> getTransactionHistoryByUserIdAndType(@RequestParam String userId, @RequestParam Boolean isIncome) {
+        return transactionsService.getTransactionHistoryByUserIdAndTypeService(userId, isIncome);
+    }
 }
