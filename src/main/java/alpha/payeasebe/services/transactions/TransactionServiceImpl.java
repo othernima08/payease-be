@@ -132,8 +132,8 @@ public class TransactionServiceImpl implements TransactionsService {
         recipient.setBalance(recipient.getBalance() + request.getAmount());
         userRepository.save(recipient);
 
-        return ResponseHandler.responseMessage(200,
-                "Transfer from " + user.getFirstName() + " " + user.getLastName() + " success", true);
+        return ResponseHandler.responseData(200,
+                "Transfer from " + user.getFirstName() + " " + user.getLastName() + " success", transfers.getId() );
     }
 
     @Override
@@ -147,5 +147,15 @@ public class TransactionServiceImpl implements TransactionsService {
         List<ResponseShowTopUpHistory> topUpHistory = transactionsRepository.getTopUpHistoryByUserId(userId);
 
         return ResponseHandler.responseData(200, "Get top up history data success", topUpHistory);
+    }
+
+    @Override
+    public ResponseEntity<?> transferDetail(String id) {
+        Transfers transfers = transferRepository.findById(id).orElseThrow(() -> {
+            throw new NoSuchElementException("transfer not found");
+        });
+
+          return ResponseHandler.responseData(200, "Get top up history data success", transfers);
+
     }
 }

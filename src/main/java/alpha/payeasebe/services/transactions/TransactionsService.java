@@ -10,6 +10,7 @@ public interface TransactionsService {
     Transactions createTransactionService(String userId, String transactionCategoryName, Double amount);
     ResponseEntity<?> getTransactionByUserId(String userId);
     ResponseEntity<?> topUpService(TopUpRequest request);
+    ResponseEntity<?> transferDetail(String id);
     ResponseEntity<?> transferService(TransferRequest request);
     ResponseEntity<?> getTopUpHistoryByUserIdService(String userId);
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import alpha.payeasebe.payloads.req.Transactions.TopUpRequest;
@@ -29,6 +30,14 @@ public class TransactionsController {
     public ResponseEntity<?> transfer(@RequestBody @Valid TransferRequest request) {
         return transactionsService.transferService(request);
     }
+
+    
+    @GetMapping("/transfer/{id}")
+    public ResponseEntity<?> transferDetailById(@PathVariable String id) {
+        return transactionsService.transferDetail(id);
+    }
+
+    
 
     @GetMapping("/top-up-history/{userId}")
     public ResponseEntity<?> getTopUpHistoryByUserId(@PathVariable String userId) {
