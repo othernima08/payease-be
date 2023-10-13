@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import alpha.payeasebe.models.User;
 import alpha.payeasebe.models.UserVirtualAccount;
 import alpha.payeasebe.payloads.res.ResponseShowVirtualAccount;
 
@@ -17,5 +16,9 @@ public interface UserVirtualAccountRepository extends JpaRepository<UserVirtualA
     List<ResponseShowVirtualAccount> getUserVirtualAccounts(String userId);
 
     UserVirtualAccount findByNumber(String number);
-    List<UserVirtualAccount> findByUser(User user);
+
+    @Query(value = "SELECT * \r\n" + //
+            "FROM user_virtual_accounts\r\n" + //
+            "WHERE is_deleted =false AND user_id = ?", nativeQuery = true)
+    List<UserVirtualAccount> findByUserId(String userId);
 }

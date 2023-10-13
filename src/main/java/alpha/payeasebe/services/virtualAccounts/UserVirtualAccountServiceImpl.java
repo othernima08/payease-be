@@ -106,10 +106,11 @@ public class UserVirtualAccountServiceImpl implements UserVirtualAccountService 
     public ResponseEntity<?> deleteUserVirtualAccountsService(String userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
 
-        List<UserVirtualAccount> userVirtualAccounts = userVirtualAccountRepository.findByUser(user);
+        List<UserVirtualAccount> userVirtualAccounts = userVirtualAccountRepository.findByUserId(userId);
 
         for (UserVirtualAccount userVirtualAccount : userVirtualAccounts) {
-            userVirtualAccountRepository.delete(userVirtualAccount);
+            userVirtualAccount.setIsDeleted(true);
+            userVirtualAccountRepository.save(userVirtualAccount);
         }
         
         return ResponseHandler.responseMessage(200, "Delete " + user.getFirstName() + " " + user.getLastName() + " virtual accounts success", true);
