@@ -1,6 +1,9 @@
 package alpha.payeasebe.services.user;
 
+import java.io.IOException;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 import alpha.payeasebe.payloads.req.FindUserEmail;
 import alpha.payeasebe.payloads.req.User.ChangePINRequest;
@@ -22,7 +25,8 @@ public interface UserServices {
     ResponseEntity<?> changeUserPasswordService(ChangePasswordRequest request);
     ResponseEntity<?> getUserByIdService(String id);
     ResponseEntity<?> findUserByEmail(FindUserEmail request);
+    ResponseEntity<?> storeImage(MultipartFile file, String newsId) throws IOException;
     ResponseEntity<?> checkTokenService(String token);
-     ResponseEntity<?> changePasswordService(String token, ResetPasswordRequest request);
+    ResponseEntity<?> changePasswordService(String token, ResetPasswordRequest request);
 }
 

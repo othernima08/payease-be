@@ -1,5 +1,6 @@
 package alpha.payeasebe.services.user;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import alpha.payeasebe.configs.JwtUtil;
@@ -228,12 +231,12 @@ public class UserServicesImpl implements UserServices {
         user.setPin(passwordEncoder.encode(request.getNewPin()));
         userRepository.save(user);
 
-        return ResponseHandler.responseMessage(200, "Change PIN Success", true); 
+        return ResponseHandler.responseMessage(200, "Change PIN Success", true);
     }
 
     @Override
     public ResponseEntity<?> changeUserPasswordService(ChangePasswordRequest request) {
-       User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
+        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
             throw new NoSuchElementException("User not found");
         });
 
@@ -244,10 +247,58 @@ public class UserServicesImpl implements UserServices {
         user.setPin(passwordEncoder.encode(request.getCurrentPassword()));
         userRepository.save(user);
 
-        return ResponseHandler.responseMessage(200, "Change Password Success", true); 
+        return ResponseHandler.responseMessage(200, "Change Password Success", true);
     }
 
     @Override
+    public ResponseEntity<?> storeImage(MultipartFile file, String userId) throws IOException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("news tidak ditemukan"));
+
+        user.setPictureProfile(file.getBytes());
+        userRepository.save(user);
+
+        String sharedUrl = ServletUriComponentsBuilder
+                .fromCurrentContextPath() // localhost
+                .path("/users/update-image") // Ubah ini sesuai dengan path Anda
+                .path(user.getId()) // ID pengguna
+                .toUriString();
+
+        // Atur sharedUrl ke objek User
+        user.setSharedUrl(sharedUrl);
+        userRepository.save(user);
+        return ResponseHandler.responseData(201, "success", user);
+    }
+    // @Override
+    // public ResponseEntity<?> storeImage(MultipartFile file, String newsId) throws
+    // IOException {
+    // // ambil nama gambar
+    // String imgName = StringUtils.cleanPath(file.getOriginalFilename());
+    // // cari entitas news
+    // News news = newsRepository.findById(newsId).orElseThrow(()
+    // -> new NoSuchElementException("news tidak ditemukan"));
+
+    // // buatkan entitas image news
+    // StoreImage image = new StoreImage(imgName, file.getBytes(), news);
+    // imageRepository.save(image); // menyimpan id
+
+    // // buatkan sharedUrl
+    // /*
+    // * endpoint untuk upload: /admin/files/news -> POST
+    // * endpoint untuk load: /files/news/{uuidGambar} ->GET
+    // */
+    // String sharedUrl = ServletUriComponentsBuilder
+    // .fromCurrentContextPath() // localhost:9098
+    // .path("/files/news/")
+    // .path(image.getId()) // id gambar
+    // .toUriString();
+
+    // // set sharedurl ke obj image news
+    // image.setSharedUrl(sharedUrl);
+    // imageRepository.save(image);
+    // return ResponseHandler.responseData(201, "success", image);
+    // }
+
     public ResponseEntity<?> addPhoneNumberService(CreatePhoneNumberRequest request) {
         User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
             throw new NoSuchElementException("User not found");
