@@ -14,6 +14,7 @@ import alpha.payeasebe.models.User;
 import alpha.payeasebe.models.UserVirtualAccount;
 import alpha.payeasebe.payloads.res.ResponseHandler;
 import alpha.payeasebe.payloads.res.ResponseShowVirtualAccount;
+import alpha.payeasebe.payloads.res.ResponseShowVirtualAccountId;
 import alpha.payeasebe.repositories.ProviderRepository;
 import alpha.payeasebe.repositories.TransactionCategoryRepository;
 import alpha.payeasebe.repositories.UserRepository;
@@ -99,20 +100,37 @@ public class UserVirtualAccountServiceImpl implements UserVirtualAccountService 
 
         List<ResponseShowVirtualAccount> virtualAccounts = userVirtualAccountRepository.getUserVirtualAccounts(userId);
 
-        return ResponseHandler.responseData(200, "Get " + user.getFirstName() + " " + user.getLastName() + " virtual accounts success", virtualAccounts);
+        return ResponseHandler.responseData(200,
+                "Get " + user.getFirstName() + " " + user.getLastName() + " virtual accounts success", virtualAccounts);
     }
 
     @Override
     public ResponseEntity<?> deleteUserVirtualAccountsService(String userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
 
-        List<UserVirtualAccount> userVirtualAccounts = userVirtualAccountRepository.findByUser(user);
+        List<UserVirtualAccount> userVirtualAccounts = userVirtualAccountRepository.findByUserId(userId);
 
         for (UserVirtualAccount userVirtualAccount : userVirtualAccounts) {
-            userVirtualAccountRepository.delete(userVirtualAccount);
+            userVirtualAccount.setIsDeleted(true);
+            userVirtualAccountRepository.save(userVirtualAccount);
         }
-        
-        return ResponseHandler.responseMessage(200, "Delete " + user.getFirstName() + " " + user.getLastName() + " virtual accounts success", true);
+
+        return ResponseHandler.responseMessage(200,
+                "Delete " + user.getFirstName() + " " + user.getLastName() + " virtual accounts success", true);
     }
 
+    @Override
+    public ResponseEntity<?> getUserVirtualAccountByIdService(String userVirtualAccountId) {
+        UserVirtualAccount userVirtualAccount = userVirtualAccountRepository.findById(userVirtualAccountId)
+                .orElseThrow(() -> new NoSuchElementException("Id is not found"));
+
+        if (userVirtualAccount.getIsDeleted()) {
+            throw new IllegalArgumentException("Virtual Account is not found or already deleted!");
+        }
+
+        List<ResponseShowVirtualAccountId> virtualAccounts = userVirtualAccountRepository
+                .getUserVirtualAccountById(userVirtualAccountId);
+
+        return ResponseHandler.responseData(200, "Data adalah", virtualAccounts);
+    }
 }

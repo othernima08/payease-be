@@ -2,12 +2,11 @@ package alpha.payeasebe.payloads.res;
 
 import java.time.LocalDateTime;
 
-public interface ResponseShowTopUpHistory {
+public interface ResponseShowTransactionHistory {
     String getId();
-    String getType();
     String getName();
     String getProfile_picture_url();
-    String getStatus();
+    String getType();
     LocalDateTime getTransaction_time();
     Double getAmount();
 }

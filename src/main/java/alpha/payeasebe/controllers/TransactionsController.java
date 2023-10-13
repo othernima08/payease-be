@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,7 +24,12 @@ public class TransactionsController {
 
     @PostMapping("/top-up")
     public ResponseEntity<?> topUp(@RequestBody @Valid TopUpRequest request) {
-        return transactionsService.topUpService(request);
+        return transactionsService.topUpGenerateCodeService(request);
+    }
+
+    @PutMapping("/top-up/{paymentCode}")
+    public ResponseEntity<?> topUpPay(@PathVariable String paymentCode) {
+        return transactionsService.topUpPaymentCodeService(paymentCode);
     }
 
     @PostMapping("/transfer")
@@ -42,5 +48,20 @@ public class TransactionsController {
     @GetMapping("/top-up-history/{userId}")
     public ResponseEntity<?> getTopUpHistoryByUserId(@PathVariable String userId) {
         return transactionsService.getTopUpHistoryByUserIdService(userId);
+    }
+
+    @GetMapping("/top-up-history")
+    public ResponseEntity<?> getTopUpHistoryByUserIdAndStatus(@RequestParam String userId, @RequestParam Boolean isSuccess) {
+        return transactionsService.getTopUpHistoryByUserIdAndStatusService(userId, isSuccess);
+    }
+
+    @GetMapping("/transaction-history/{userId}")
+    public ResponseEntity<?> getTransactionHistoryByUserId(@PathVariable String userId) {
+        return transactionsService.getTransactionHistoryByUserIdService(userId);
+    }
+
+    @GetMapping("/transaction-history")
+    public ResponseEntity<?> getTransactionHistoryByUserIdAndType(@RequestParam String userId, @RequestParam Boolean isIncome) {
+        return transactionsService.getTransactionHistoryByUserIdAndTypeService(userId, isIncome);
     }
 }
