@@ -267,10 +267,10 @@ public class UserServicesImpl implements UserServices {
             throw new NoSuchElementException("Bad Credentials: Password doesn't match!");
         }
 
-        user.setPin(passwordEncoder.encode(request.getCurrentPassword()));
+        user.setPassword(passwordEncoder.encode(request.getCurrentPassword()));
         userRepository.save(user);
 
-        return ResponseHandler.responseMessage(200, "Change Password Success", true);
+        return ResponseHandler.responseMessage(200, "Password edited successfully", true);
     }
 
     @Override

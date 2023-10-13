@@ -101,7 +101,6 @@ public class UserController {
     @DeleteMapping("/delete-phone-number/{userId}")
     public ResponseEntity<?> deleteUserPhoneNumber(@PathVariable String userId) {
         return userServices.deletePhoneNumberService(userId);
-
     }
 }
 
