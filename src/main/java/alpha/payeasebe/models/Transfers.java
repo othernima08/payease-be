@@ -42,11 +42,16 @@ public class Transfers {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    private LocalDateTime transactionTime;
+
     private Boolean isDeleted = false;
 
-    public Transfers(User user, Transactions transactions, String notes) {
+    public Transfers(User user, Transactions transactions, String notes, LocalDateTime transactionTime) {
         this.user = user;
         this.transactions = transactions;
         this.notes = notes;
+        this.transactionTime = transactionTime;
     }
+
+    
 }

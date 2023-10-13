@@ -113,7 +113,7 @@ public class TransactionServiceImpl implements TransactionsService {
             throw new IllegalArgumentException("Insufficient balance");
         }
 
-        Transfers transfers = new Transfers(recipient, transactions, request.getNotes());
+        Transfers transfers = new Transfers(recipient, transactions, request.getNotes(),request.getTransactionTime());
         transferRepository.save(transfers);
 
         if (!passwordEncoder.matches(request.getPin(), user.getPin())) {
