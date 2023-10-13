@@ -67,6 +67,7 @@ public class UserController {
     @PutMapping("/change-password")
     public ResponseEntity<?> changePassword( @RequestParam(value = "token") String token, @RequestBody ResetPasswordRequest request) {
         return userServices.changePasswordService(token, request);
+    }
 
 
     @PutMapping("/change-pin")

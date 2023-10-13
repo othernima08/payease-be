@@ -34,4 +34,9 @@ public class TransactionsController {
     public ResponseEntity<?> getTopUpHistoryByUserId(@PathVariable String userId) {
         return transactionsService.getTopUpHistoryByUserIdService(userId);
     }
+
+    @GetMapping("/transaction-history/{userId}")
+    public ResponseEntity<?> getHistory(@PathVariable String userId) {
+        return transactionsService.getHistoryService(userId);
+    }
 }

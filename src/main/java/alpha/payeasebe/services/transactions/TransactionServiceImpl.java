@@ -15,6 +15,7 @@ import alpha.payeasebe.models.User;
 import alpha.payeasebe.payloads.req.Transactions.TopUpRequest;
 import alpha.payeasebe.payloads.req.Transactions.TransferRequest;
 import alpha.payeasebe.payloads.res.ResponseHandler;
+import alpha.payeasebe.payloads.res.ResponseHistoryTransaction;
 import alpha.payeasebe.payloads.res.ResponseShowTopUpHistory;
 import alpha.payeasebe.repositories.TransactionCategoryRepository;
 import alpha.payeasebe.repositories.TransactionsRepository;
@@ -27,6 +28,7 @@ import alpha.payeasebe.validators.UserValidation;
 public class TransactionServiceImpl implements TransactionsService {
     @Autowired
     TransactionsRepository transactionsRepository;
+
 
     @Autowired
     TransactionCategoryRepository transactionCategoryRepository;
@@ -148,4 +150,15 @@ public class TransactionServiceImpl implements TransactionsService {
 
         return ResponseHandler.responseData(200, "Get top up history data success", topUpHistory);
     }
+
+    @Override
+    public ResponseEntity<?> getHistoryService(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+        List<ResponseHistoryTransaction> transactionHistory = transactionsRepository.getHistory(userId);
+        return ResponseHandler.responseData(200, "success", transactionHistory);
+    }
+    
 }
