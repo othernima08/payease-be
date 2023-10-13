@@ -1,5 +1,7 @@
 package alpha.payeasebe.controllers;
 
+import java.io.IOException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import alpha.payeasebe.payloads.req.User.ChangePINRequest;
 import alpha.payeasebe.payloads.req.User.ChangePasswordRequest;
@@ -60,14 +63,14 @@ public class UserController {
         return userServices.findUserByEmail(request);
     }
 
-    @PutMapping("/reset-password")
-    public ResponseEntity<?> findUserEMail(@RequestParam(value = "token") String token, @RequestBody ResetPasswordRequest request) {
-        return userServices.resetPasswordService(token, request);
+     @GetMapping("/reset-password")
+    public ResponseEntity<?> findUserEMail( @RequestParam(value = "token") String token) {
+        return userServices.checkTokenService(token);
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<?> changePasswordService(@RequestBody @Valid ChangePasswordRequest request) {
-        return userServices.changeUserPasswordService(request);
+    public ResponseEntity<?> changePassword( @RequestParam(value = "token") String token, @RequestBody ResetPasswordRequest request) {
+        return userServices.changePasswordService(token, request);
     }
 
     @PutMapping("/change-pin")
@@ -75,9 +78,19 @@ public class UserController {
         return userServices.changeUserPINService(request);
     }
 
+    @PutMapping("/change-password-after-login")
+    public ResponseEntity<?> changeUserPassword(@RequestBody @Valid ChangePasswordRequest request) {
+        return userServices.changeUserPasswordService(request);
+    }
+
     @PutMapping("/verify-pin")
     public ResponseEntity<?> verifyPINService(@RequestBody @Valid VerifyPINRequest request) {
         return userServices.verifyUserPINService(request);
+    }
+
+    @PutMapping("/update-image")
+    public ResponseEntity<?> updateImageService(@RequestParam(value = "file") MultipartFile file, @RequestParam(value = "userId") String userId) throws IOException{
+        return userServices.storeImage(file, userId);
     }
 
     @PutMapping("/add-phone-number")
@@ -88,5 +101,7 @@ public class UserController {
     @DeleteMapping("/delete-phone-number/{userId}")
     public ResponseEntity<?> deleteUserPhoneNumber(@PathVariable String userId) {
         return userServices.deletePhoneNumberService(userId);
+
     }
 }
+
