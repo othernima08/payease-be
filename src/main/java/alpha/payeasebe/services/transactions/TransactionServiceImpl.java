@@ -79,13 +79,7 @@ public class TransactionServiceImpl implements TransactionsService {
 
         return transactions;
     }
-
-    @Override
-    public ResponseEntity<?> getTransactionByUserId(String userId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getTransactionByUserId'");
-    }
-
+    
     @Override
     public ResponseEntity<?> transferService(TransferRequest request) {
         Transactions transactions = createTransactionService(request.getUserId(), "Transfer", request.getAmount());
@@ -225,5 +219,11 @@ public class TransactionServiceImpl implements TransactionsService {
         List<ResponseShowTopUpHistory> topUpHistory = transactionsRepository.getTopUpHistoryByUserIdAndStatus(userId, isDeleted);
 
         return ResponseHandler.responseData(200, "Get top up history data success", topUpHistory);
+    }
+
+    @Override
+    public ResponseEntity<?> getTransactionHistoryByUserIdService(String userId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getTransactionHistoryByUserIdService'");
     }
 }

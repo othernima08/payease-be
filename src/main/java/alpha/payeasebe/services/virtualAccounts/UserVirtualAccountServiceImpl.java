@@ -115,5 +115,4 @@ public class UserVirtualAccountServiceImpl implements UserVirtualAccountService 
         
         return ResponseHandler.responseMessage(200, "Delete " + user.getFirstName() + " " + user.getLastName() + " virtual accounts success", true);
     }
-
 }
