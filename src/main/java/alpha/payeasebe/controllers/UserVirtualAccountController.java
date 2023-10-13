@@ -34,4 +34,9 @@ public class UserVirtualAccountController {
     public ResponseEntity<?> deleteVirtualAccountByUserId(@PathVariable String userId) {
         return userVirtualAccountService.deleteUserVirtualAccountsService(userId);
     }
+
+    @GetMapping("/virtual-account/{virtualAccountId}") 
+    public ResponseEntity<?> getVirtualAccountById(@PathVariable String virtualAccountId) {
+        return userVirtualAccountService.getUserVirtualAccountByIdService(virtualAccountId);
+    }
 }
