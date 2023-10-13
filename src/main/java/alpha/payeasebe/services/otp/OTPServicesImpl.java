@@ -52,7 +52,6 @@ public class OTPServicesImpl implements OTPServices {
     @Override
     public ResponseEntity<?> verifyOTPCodeService(VerifyOTPRequest request) {
         OTP otp = otpRepository.findByOtpCode(request.getOtpCode());
-
         otpValidation.validateOTP(otp);
 
         if (LocalDateTime.now().isAfter(otp.getExpiredAt()) ) {

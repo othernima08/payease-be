@@ -28,7 +28,10 @@ public class ResetToken {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+
+
     private LocalDateTime expiryDateTime; 
+  
 
     private Boolean isActive = true;
 

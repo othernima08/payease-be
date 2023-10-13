@@ -1,6 +1,7 @@
 package alpha.payeasebe.services.user;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import alpha.payeasebe.models.User;
 import alpha.payeasebe.payloads.req.User.ChangePINRequest;
 import alpha.payeasebe.payloads.req.User.ChangePasswordRequest;
 import alpha.payeasebe.payloads.req.User.CreatePINRequest;
+import alpha.payeasebe.payloads.req.User.CreatePhoneNumberRequest;
 import alpha.payeasebe.payloads.req.User.LoginRequest;
 import alpha.payeasebe.payloads.req.User.RegisterRequest;
 import alpha.payeasebe.payloads.req.User.ResetPasswordRequest;
@@ -35,6 +37,7 @@ import alpha.payeasebe.repositories.ResetPasswordRepository;
 import alpha.payeasebe.repositories.UserRepository;
 import alpha.payeasebe.services.mail.MailService;
 import alpha.payeasebe.validators.UserValidation;
+import jakarta.validation.ValidationException;
 
 @Service
 public class UserServicesImpl implements UserServices {
@@ -150,39 +153,69 @@ public class UserServicesImpl implements UserServices {
         User user = userRepository.findByEmail(request.getEmail());
 
         ResetToken resetToken = new ResetToken(user);
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime expireDateTime = now.plusMinutes(5);
+        resetToken.setExpiryDateTime(expireDateTime);
+
         resetPasswordRepository.save(resetToken);
 
         StringBuilder buildMessageMail = new StringBuilder();
         buildMessageMail.append("To reset your password, please check your email by click here: ");
         buildMessageMail.append(
-                ServletUriComponentsBuilder
-                        .fromCurrentContextPath()
-                        .path("/users/reset-password")
-                        .queryParam("token", resetToken.getToken())
-                        .toUriString());
-
+                "http://localhost:5173/create-password/" + resetToken.getToken());
+        buildMessageMail.append(
+                "    /n This link is expired in 5 minutes.");
         mailService.sendMail(new MailRequest(user.getEmail(), "Reset your password!", buildMessageMail.toString()));
 
         return ResponseHandler.responseData(201, "Password Reset Succesfull!", user);
     }
 
     @Override
-    public ResponseEntity<?> resetPasswordService(String token, ResetPasswordRequest request) {
+    public ResponseEntity<?> checkTokenService(String token) {
         ResetToken resetToken = resetPasswordRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Couldn't verify the email!"));
+                .orElseThrow(() -> new RuntimeException("Token is Invalid!"));
+
+        // tokenvalidation
+
+        LocalDateTime currentTime = LocalDateTime.now();
+        if (resetToken.getExpiryDateTime() != null && currentTime.isAfter(resetToken.getExpiryDateTime())) {
+            throw new RuntimeException("Token has expired!");
+        }
+
+        // used or not
+        if (!resetToken.getIsActive().equals(true)) {
+            throw new RuntimeException("This token already used, please go to forgot-password page.");
+        }
 
         User user = resetToken.getUser();
 
+        return ResponseHandler.responseData(200, "Token Is Valid!", user);
+    }
+
+    @Override
+    public ResponseEntity<?> changePasswordService(String token, ResetPasswordRequest request) {
+        ResetToken resetToken = resetPasswordRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Token is Invalid!"));
+
+        User user = resetToken.getUser();
+
+        String passwordFix;
+        userValidation.validateUser(user);
+
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new RuntimeException("Password and confirmation do not match!");
+            throw new RuntimeException("New password and confirmation doesnt match!");
         }
 
         else {
-            user.setPassword(request.getConfirmPassword());
+            passwordFix = request.getConfirmPassword();
+            user.setPassword(passwordEncoder.encode(passwordFix));
+            resetToken.setIsActive(false);
             userRepository.save(user);
         }
 
-        return ResponseHandler.responseData(200, "Your Password Changed successfully!", user);
+        return ResponseHandler.responseData(200, "Password is changed!", user);
+
     }
 
     @Override
@@ -266,4 +299,55 @@ public class UserServicesImpl implements UserServices {
     // return ResponseHandler.responseData(201, "success", image);
     // }
 
+    public ResponseEntity<?> addPhoneNumberService(CreatePhoneNumberRequest request) {
+        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
+            throw new NoSuchElementException("User not found");
+        });
+    
+        userValidation.validateUser(user);
+    
+        // Cek no hp user
+        if (user.getPhoneNumber() != null && !user.getPhoneNumber().isEmpty()) {
+            throw new EntityFoundException("Phone number is already added!");
+        }
+    
+        String phoneNumber = request.getPhoneNumber();
+        
+        // Validasi nomor HP
+        if (!phoneNumber.matches("^[0-9]*$") || phoneNumber.length() < 12 || phoneNumber.length() > 13) {
+            throw new ValidationException("Invalid phone number format or length");
+        }
+        
+        // Cek apakah nomor HP sudah ada dalam database
+        User existingUserWithPhoneNumber = userRepository.findByPhoneNumber(phoneNumber);
+        if (existingUserWithPhoneNumber != null) {
+            throw new EntityFoundException("Phone number is already in use by another user!");
+        }
+    
+        user.setPhoneNumber(phoneNumber);
+        userRepository.save(user);
+    
+        return ResponseHandler.responseMessage(200, "Phone number added successfully", true);
+    }
+
+    @Override
+    public ResponseEntity<?> deletePhoneNumberService(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> {
+            throw new NoSuchElementException("User not found");
+        });
+    
+        userValidation.validateUser(user);
+    
+        // Cek jika nomor HP sudah ada atau tidak
+        if (user.getPhoneNumber() == null || user.getPhoneNumber().isEmpty()) {
+            throw new NoSuchElementException("Phone number is not found!");
+        }
+    
+        // Hapus nomor HP
+        user.setPhoneNumber(null);
+        userRepository.save(user);
+    
+        return ResponseHandler.responseMessage(200, "Phone number deleted successfully", true);
+    }
+    
 }
