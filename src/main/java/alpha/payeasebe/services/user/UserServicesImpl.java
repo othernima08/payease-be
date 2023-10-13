@@ -16,7 +16,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import alpha.payeasebe.configs.JwtUtil;
@@ -245,6 +244,10 @@ public class UserServicesImpl implements UserServices {
 
         if (user.getIsDeleted()) {
             throw new NoSuchElementException("User is not active or already deleted");
+        }
+
+        if (!(passwordEncoder.matches(request.getCurrentPin(), user.getPin()))) {
+            throw new NoSuchElementException("Bad Credentials: PIN doesn't match!");
         }
 
         user.setPin(passwordEncoder.encode(request.getNewPin()));

@@ -1,6 +1,8 @@
 package alpha.payeasebe.services.transactions;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +23,7 @@ import alpha.payeasebe.payloads.req.Transactions.TopUpRequest;
 import alpha.payeasebe.payloads.req.Transactions.TransferRequest;
 import alpha.payeasebe.payloads.res.ResponseHandler;
 import alpha.payeasebe.payloads.res.ResponseShowTopUpHistory;
+import alpha.payeasebe.payloads.res.ResponseShowTransactionHistory;
 import alpha.payeasebe.repositories.TopUpRepository;
 import alpha.payeasebe.repositories.TransactionCategoryRepository;
 import alpha.payeasebe.repositories.TransactionsRepository;
@@ -54,7 +57,7 @@ public class TransactionServiceImpl implements TransactionsService {
     @Autowired
     TransferRepository transferRepository;
 
-    @Autowired 
+    @Autowired
     TopUpRepository topUpRepository;
 
     @Autowired
@@ -78,12 +81,6 @@ public class TransactionServiceImpl implements TransactionsService {
         transactionsRepository.save(transactions);
 
         return transactions;
-    }
-
-    @Override
-    public ResponseEntity<?> getTransactionByUserId(String userId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getTransactionByUserId'");
     }
 
     @Override
@@ -157,7 +154,7 @@ public class TransactionServiceImpl implements TransactionsService {
 
         TopUp topUp = new TopUp(transaction, userVirtualAccount, paymentCode);
         topUpRepository.save(topUp);
- 
+
         Map<String, Object> data = new HashMap<>();
         data.put("virtualAccountId", topUp.getUserVirtualAccount().getId());
         data.put("paymentCode", topUp.getPaymentCode());
@@ -176,8 +173,8 @@ public class TransactionServiceImpl implements TransactionsService {
         }
 
         Transactions transaction = transactionsRepository.findById(topUp.getTransactions().getId())
-                .orElseThrow(() -> new NoSuchElementException("Transaction is not found"));       
-        
+                .orElseThrow(() -> new NoSuchElementException("Transaction is not found"));
+
         User user = transaction.getUser();
 
         if (user.getIsDeleted()) {
@@ -194,7 +191,7 @@ public class TransactionServiceImpl implements TransactionsService {
         topUpRepository.save(topUp);
 
         return ResponseHandler.responseMessage(200,
-                "Top up for " + user.getFirstName() + " " + user.getLastName() + " success", true);      
+                "Top up for " + user.getFirstName() + " " + user.getLastName() + " success", true);
     }
 
     public String generatePaymentCode() {
@@ -212,5 +209,101 @@ public class TransactionServiceImpl implements TransactionsService {
         }
 
         return code.toString();
+    }
+
+    @Override
+    public ResponseEntity<?> getTopUpHistoryByUserIdAndStatusService(String userId, Boolean isDeleted) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
+
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        List<ResponseShowTopUpHistory> topUpHistory = transactionsRepository.getTopUpHistoryByUserIdAndStatus(userId,
+                isDeleted);
+
+        return ResponseHandler.responseData(200, "Get top up history data success", topUpHistory);
+    }
+
+    @Override
+    public ResponseEntity<?> getTransactionHistoryByUserIdService(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
+
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        List<ResponseShowTransactionHistory> transactionHistories = new ArrayList<>();
+        transactionHistories.addAll(transactionsRepository.getTopUpByUserId(userId));
+        transactionHistories.addAll(transactionsRepository.getTransferFromHistoryByUserId(userId));
+        transactionHistories.addAll(transactionsRepository.getTransferToHistoryByUserId(userId));
+
+        Collections.sort(transactionHistories,
+                (history1, history2) -> history2.getTransaction_time().compareTo(history1.getTransaction_time()));
+
+        return ResponseHandler.responseData(200,
+                "Get " + user.getFirstName() + " " + user.getLastName() + " transaction history success",
+                transactionHistories);
+    }
+
+    // @Override
+    // public ResponseEntity<?> getIncomeTransactionHistoryByUserIdService(String userId) {
+    //     User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
+
+    //     if (user.getIsDeleted()) {
+    //         throw new IllegalArgumentException("User is not active or already deleted");
+    //     }
+
+    //     List<ResponseShowTransactionHistory> transactionHistories = new ArrayList<>();
+    //     transactionHistories.addAll(transactionsRepository.getTopUpByUserId(userId));
+    //     transactionHistories.addAll(transactionsRepository.getTransferFromHistoryByUserId(userId));
+
+    //     Collections.sort(transactionHistories,
+    //             (history1, history2) -> history2.getTransaction_time().compareTo(history1.getTransaction_time()));
+
+    //     return ResponseHandler.responseData(200,
+    //             "Get " + user.getFirstName() + " " + user.getLastName() + " income transaction history success",
+    //             transactionHistories);
+    // }
+
+    // @Override
+    // public ResponseEntity<?> getExpenseTransactionHistoryByUserIdService(String userId) {
+    //     User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
+
+    //     if (user.getIsDeleted()) {
+    //         throw new IllegalArgumentException("User is not active or already deleted");
+    //     }
+
+    //     List<ResponseShowTransactionHistory> transactionHistories = transactionsRepository
+    //             .getTransferToHistoryByUserId(userId);
+
+    //     return ResponseHandler.responseData(200,
+    //             "Get " + user.getFirstName() + " " + user.getLastName() + " transaction history success",
+    //             transactionHistories);
+    // }
+
+    @Override
+    public ResponseEntity<?> getTransactionHistoryByUserIdAndTypeService(String userId, Boolean isIncome) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
+
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        List<ResponseShowTransactionHistory> transactionHistories = new ArrayList<>();
+
+        if (isIncome) {
+            transactionHistories.addAll(transactionsRepository.getTopUpByUserId(userId));
+            transactionHistories.addAll(transactionsRepository.getTransferFromHistoryByUserId(userId));
+
+            Collections.sort(transactionHistories,
+                    (history1, history2) -> history2.getTransaction_time().compareTo(history1.getTransaction_time()));
+        } else {
+            transactionHistories.addAll(transactionsRepository.getTransferToHistoryByUserId(userId));
+        }
+
+        return ResponseHandler.responseData(200,
+                "Get " + user.getFirstName() + " " + user.getLastName() + " transaction history success",
+                transactionHistories);
     }
 }
