@@ -107,7 +107,7 @@ public class TransactionServiceImpl implements TransactionsService {
             throw new IllegalArgumentException("Insufficient balance");
         }
 
-        Transfers transfers = new Transfers(recipient, transactions, request.getNotes());
+        Transfers transfers = new Transfers(recipient, transactions, request.getNotes(),request.getTransactionTime());
         transferRepository.save(transfers);
 
         if (!passwordEncoder.matches(request.getPin(), user.getPin())) {
@@ -126,8 +126,8 @@ public class TransactionServiceImpl implements TransactionsService {
         recipient.setBalance(recipient.getBalance() + request.getAmount());
         userRepository.save(recipient);
 
-        return ResponseHandler.responseMessage(200,
-                "Transfer from " + user.getFirstName() + " " + user.getLastName() + " success", true);
+        return ResponseHandler.responseData(200,
+                "Transfer from " + user.getFirstName() + " " + user.getLastName() + " success", transfers.getId() );
     }
 
     @Override
@@ -144,6 +144,14 @@ public class TransactionServiceImpl implements TransactionsService {
     }
 
     @Override
+    public ResponseEntity<?> transferDetail(String id) {
+        Transfers transfers = transferRepository.findById(id).orElseThrow(() -> {
+            throw new NoSuchElementException("transfer not found");
+        });
+
+          return ResponseHandler.responseData(200, "Get top up history data success", transfers);
+    }
+
     public ResponseEntity<?> topUpGenerateCodeService(TopUpRequest request) {
         Transactions transaction = createTransactionService(request.getUserId(), "Top Up", request.getAmount());
 

@@ -37,6 +37,14 @@ public class TransactionsController {
         return transactionsService.transferService(request);
     }
 
+    
+    @GetMapping("/transfer/{id}")
+    public ResponseEntity<?> transferDetailById(@PathVariable String id) {
+        return transactionsService.transferDetail(id);
+    }
+
+    
+
     @GetMapping("/top-up-history/{userId}")
     public ResponseEntity<?> getTopUpHistoryByUserId(@PathVariable String userId) {
         return transactionsService.getTopUpHistoryByUserIdService(userId);
