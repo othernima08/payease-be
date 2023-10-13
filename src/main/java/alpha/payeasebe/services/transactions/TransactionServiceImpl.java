@@ -213,4 +213,17 @@ public class TransactionServiceImpl implements TransactionsService {
 
         return code.toString();
     }
+
+    @Override
+    public ResponseEntity<?> getTopUpHistoryByUserIdAndStatusService(String userId, Boolean isDeleted) {
+         User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
+
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        List<ResponseShowTopUpHistory> topUpHistory = transactionsRepository.getTopUpHistoryByUserIdAndStatus(userId, isDeleted);
+
+        return ResponseHandler.responseData(200, "Get top up history data success", topUpHistory);
+    }
 }

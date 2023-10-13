@@ -18,4 +18,14 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
             "WHERE t.user_id = ? AND t.is_deleted = false\r\n" + //
             "GROUP BY tu.id", nativeQuery = true)
     List<ResponseShowTopUpHistory> getTopUpHistoryByUserId(String userId);
+
+    @Query(value = "SELECT tu.id, tc.type, p.name, p.profile_picture_url, CASE WHEN t.already_done = true THEN 'Success' ELSE 'Pending' END AS status, t.transaction_time, t.amount \r\n" + //
+            "FROM top_ups tu\r\n" + //
+            "JOIN transactions t ON tu.transaction_id = t.id\r\n" + //
+            "JOIN transaction_categories tc ON tc.id = t.transaction_categories_id\r\n" + //
+            "JOIN user_virtual_accounts uac ON tu.method_id = uac.id\r\n" + //
+            "JOIN providers p ON p.id = uac.provider_id\r\n" + //
+            "WHERE t.user_id = ?1 AND t.is_deleted = false AND t.already_done = ?2\r\n" + //
+            "GROUP BY tu.id", nativeQuery = true)
+    List<ResponseShowTopUpHistory> getTopUpHistoryByUserIdAndStatus(String userId, Boolean isDeleted);
 }
