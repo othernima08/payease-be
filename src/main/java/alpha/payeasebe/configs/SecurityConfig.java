@@ -24,7 +24,7 @@ public class SecurityConfig {
     @Autowired
     JwtFilter jwtFilter;
 
-    //password encoder
+    // password encoder
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -44,8 +44,14 @@ public class SecurityConfig {
 
         //authorize request
         httpSecurity.authorizeHttpRequests(auth -> {
-             auth.requestMatchers("/**").permitAll() //login, register, reset password, create pin
-             .anyRequest().fullyAuthenticated(); 
+            auth.requestMatchers("/users/login").permitAll()
+            .requestMatchers("/users/register").permitAll()
+            .requestMatchers("/users/login").permitAll()
+            .requestMatchers("/users/create-pin").permitAll()
+            .requestMatchers("/otp/**").permitAll()
+            .requestMatchers("/providers/**").permitAll()
+            .requestMatchers("/transaction-categories/**").permitAll()
+            .anyRequest().fullyAuthenticated(); 
         });
 
         //set auth provider
@@ -61,14 +67,15 @@ public class SecurityConfig {
 
     // digunakan untuk mengautentikasi user yang mau akses req dan atau login
     @Bean
-    public AuthenticationManager authenticationManager (AuthenticationConfiguration authenticationConfiguration) throws Exception{
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
     // DaoAuth : provider untuk mencari email dan match-kan passswordnya
     @Bean
-    public DaoAuthenticationProvider authenticationProvider(){
-        DaoAuthenticationProvider authenticationProvider =  new DaoAuthenticationProvider(passwordEncoder());
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider(passwordEncoder());
         authenticationProvider.setUserDetailsService(userDetailsService);
         return authenticationProvider;
     }

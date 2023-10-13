@@ -30,12 +30,14 @@ import alpha.payeasebe.payloads.req.User.CreatePhoneNumberRequest;
 import alpha.payeasebe.payloads.req.User.LoginRequest;
 import alpha.payeasebe.payloads.req.User.RegisterRequest;
 import alpha.payeasebe.payloads.req.User.ResetPasswordRequest;
+import alpha.payeasebe.payloads.req.User.VerifyPINRequest;
 import alpha.payeasebe.payloads.req.FindUserEmail;
 import alpha.payeasebe.payloads.req.MailRequest;
 import alpha.payeasebe.payloads.res.ResponseHandler;
 import alpha.payeasebe.repositories.ResetPasswordRepository;
 import alpha.payeasebe.repositories.UserRepository;
 import alpha.payeasebe.services.mail.MailService;
+import alpha.payeasebe.services.virtualAccounts.UserVirtualAccountService;
 import alpha.payeasebe.validators.UserValidation;
 import jakarta.validation.ValidationException;
 
@@ -50,6 +52,9 @@ public class UserServicesImpl implements UserServices {
 
     @Autowired
     UserValidation userValidation;
+
+    @Autowired
+    UserVirtualAccountService userVirtualAccountService;
 
     @Autowired
     MailService mailService;
@@ -127,6 +132,10 @@ public class UserServicesImpl implements UserServices {
 
         userValidation.validateUser(user);
 
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
+
         user.setPin(passwordEncoder.encode(request.getPin()));
 
         userRepository.save(user);
@@ -151,6 +160,10 @@ public class UserServicesImpl implements UserServices {
         }
 
         User user = userRepository.findByEmail(request.getEmail());
+
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
 
         ResetToken resetToken = new ResetToken(user);
 
@@ -190,6 +203,9 @@ public class UserServicesImpl implements UserServices {
 
         User user = resetToken.getUser();
 
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
         return ResponseHandler.responseData(200, "Token Is Valid!", user);
     }
 
@@ -199,6 +215,9 @@ public class UserServicesImpl implements UserServices {
                 .orElseThrow(() -> new RuntimeException("Token is Invalid!"));
 
         User user = resetToken.getUser();
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
 
         String passwordFix;
         userValidation.validateUser(user);
@@ -224,8 +243,8 @@ public class UserServicesImpl implements UserServices {
             throw new NoSuchElementException("User not found");
         });
 
-        if (!(passwordEncoder.matches(request.getCurrentPin(), user.getPin()))) {
-            throw new NoSuchElementException("Bad Credentials: PIN doesn't match!");
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
         }
 
         user.setPin(passwordEncoder.encode(request.getNewPin()));
@@ -240,8 +259,12 @@ public class UserServicesImpl implements UserServices {
             throw new NoSuchElementException("User not found");
         });
 
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
+
         if (!(passwordEncoder.matches(request.getCurrentPassword(), user.getPassword()))) {
-            throw new NoSuchElementException("Bad Credentials: PIN doesn't match!");
+            throw new NoSuchElementException("Bad Credentials: Password doesn't match!");
         }
 
         user.setPin(passwordEncoder.encode(request.getCurrentPassword()));
@@ -254,6 +277,10 @@ public class UserServicesImpl implements UserServices {
     public ResponseEntity<?> storeImage(MultipartFile file, String userId) throws IOException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("news tidak ditemukan"));
+
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
 
         user.setPictureProfile(file.getBytes());
         userRepository.save(user);
@@ -269,6 +296,7 @@ public class UserServicesImpl implements UserServices {
         userRepository.save(user);
         return ResponseHandler.responseData(201, "success", user);
     }
+    
     // @Override
     // public ResponseEntity<?> storeImage(MultipartFile file, String newsId) throws
     // IOException {
@@ -303,30 +331,34 @@ public class UserServicesImpl implements UserServices {
         User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
             throw new NoSuchElementException("User not found");
         });
-    
-        userValidation.validateUser(user);
-    
+
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
+
         // Cek no hp user
         if (user.getPhoneNumber() != null && !user.getPhoneNumber().isEmpty()) {
             throw new EntityFoundException("Phone number is already added!");
         }
-    
+
         String phoneNumber = request.getPhoneNumber();
-        
+
         // Validasi nomor HP
         if (!phoneNumber.matches("^[0-9]*$") || phoneNumber.length() < 12 || phoneNumber.length() > 13) {
             throw new ValidationException("Invalid phone number format or length");
         }
-        
+
         // Cek apakah nomor HP sudah ada dalam database
         User existingUserWithPhoneNumber = userRepository.findByPhoneNumber(phoneNumber);
         if (existingUserWithPhoneNumber != null) {
             throw new EntityFoundException("Phone number is already in use by another user!");
         }
-    
+
         user.setPhoneNumber(phoneNumber);
         userRepository.save(user);
-    
+
+        userVirtualAccountService.generateUserVirtualAccountsService(phoneNumber);
+
         return ResponseHandler.responseMessage(200, "Phone number added successfully", true);
     }
 
@@ -335,19 +367,42 @@ public class UserServicesImpl implements UserServices {
         User user = userRepository.findById(userId).orElseThrow(() -> {
             throw new NoSuchElementException("User not found");
         });
-    
+
         userValidation.validateUser(user);
-    
+
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
+
         // Cek jika nomor HP sudah ada atau tidak
         if (user.getPhoneNumber() == null || user.getPhoneNumber().isEmpty()) {
             throw new NoSuchElementException("Phone number is not found!");
         }
-    
+
         // Hapus nomor HP
         user.setPhoneNumber(null);
         userRepository.save(user);
-    
+
+        userVirtualAccountService.deleteUserVirtualAccountsService(userId);
+
         return ResponseHandler.responseMessage(200, "Phone number deleted successfully", true);
     }
-    
+
+    @Override
+    public ResponseEntity<?> verifyUserPINService(VerifyPINRequest request) {
+        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
+            throw new NoSuchElementException("User not found");
+        });
+
+        if (user.getIsDeleted()) {
+            throw new NoSuchElementException("User is not active or already deleted");
+        }
+
+        if (!(passwordEncoder.matches(request.getCurrentPin(), user.getPin()))) {
+            throw new NoSuchElementException("Bad Credentials: PIN doesn't match!");
+        }
+
+        return ResponseHandler.responseMessage(200, "PIN match", true);
+    }
+
 }
