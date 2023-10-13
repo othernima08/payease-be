@@ -31,37 +31,40 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception{
-        //disable csrf
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+        // disable csrf
         httpSecurity.csrf(csrf -> {
             csrf.disable();
         });
 
         // session management
-        httpSecurity.sessionManagement(session ->{
+        httpSecurity.sessionManagement(session -> {
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         });
 
-        //authorize request
+        // authorize request
         httpSecurity.authorizeHttpRequests(auth -> {
             auth.requestMatchers("/users/login").permitAll()
-            .requestMatchers("/users/register").permitAll()
-            .requestMatchers("/users/login").permitAll()
-            .requestMatchers("/users/create-pin").permitAll()
-            .requestMatchers("/otp/**").permitAll()
-            .requestMatchers("/providers/**").permitAll()
-            .requestMatchers("/transaction-categories/**").permitAll()
-            .anyRequest().fullyAuthenticated(); 
+                    .requestMatchers("/users/register").permitAll()
+                    .requestMatchers("/users/login").permitAll()
+                    .requestMatchers("/users/create-pin").permitAll()
+                    .requestMatchers("/users/find-email-reset").permitAll()
+                    .requestMatchers("/users/reset-password").permitAll()
+                    .requestMatchers("/users/change-password").permitAll()
+                    .requestMatchers("/otp/**").permitAll()
+                    .requestMatchers("/providers/**").permitAll()
+                    .requestMatchers("/transaction-categories/**").permitAll()
+                    .anyRequest().fullyAuthenticated();
         });
 
-        //set auth provider
+        // set auth provider
         httpSecurity.authenticationProvider(authenticationProvider());
 
-        //set filter
+        // set filter
         httpSecurity.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-        //basic auth
+        // basic auth
         // httpSecurity.httpBasic();
-        
+
         return httpSecurity.build();
     }
 

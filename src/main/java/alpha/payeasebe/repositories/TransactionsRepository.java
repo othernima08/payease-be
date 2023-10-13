@@ -9,6 +9,13 @@ import alpha.payeasebe.models.Transactions;
 import alpha.payeasebe.payloads.res.ResponseShowTopUpHistory;
 
 public interface TransactionsRepository extends JpaRepository<Transactions, String> {
-    @Query(value = "SELECT t.id, t.amount, t.transaction_time, CASE WHEN t.already_done = true THEN 'Success' ELSE 'Pending' END AS status FROM transactions t JOIN transaction_categories tc ON t.transaction_categories_id = tc.id JOIN users u ON t.user_id = u.id WHERE tc.type = 'Top Up' AND t.is_deleted = false AND t.user_id = ? GROUP BY t.id", nativeQuery = true)
+    @Query(value = "SELECT tu.id, tc.type, p.name, p.profile_picture_url, CASE WHEN t.already_done = true THEN 'Success' ELSE 'Pending' END AS status, t.transaction_time, t.amount \r\n" + //
+            "FROM top_ups tu\r\n" + //
+            "JOIN transactions t ON tu.transaction_id = t.id\r\n" + //
+            "JOIN transaction_categories tc ON tc.id = t.transaction_categories_id\r\n" + //
+            "JOIN user_virtual_accounts uac ON tu.method_id = uac.id\r\n" + //
+            "JOIN providers p ON p.id = uac.provider_id\r\n" + //
+            "WHERE t.user_id = ? AND t.is_deleted = false\r\n" + //
+            "GROUP BY tu.id", nativeQuery = true)
     List<ResponseShowTopUpHistory> getTopUpHistoryByUserId(String userId);
 }
