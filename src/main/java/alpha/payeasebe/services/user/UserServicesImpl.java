@@ -2,6 +2,7 @@ package alpha.payeasebe.services.user;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,8 @@ import alpha.payeasebe.payloads.req.User.VerifyPINRequest;
 import alpha.payeasebe.payloads.req.FindUserEmail;
 import alpha.payeasebe.payloads.req.MailRequest;
 import alpha.payeasebe.payloads.res.ResponseHandler;
+import alpha.payeasebe.payloads.res.ResponseShowTransactionHistory;
+import alpha.payeasebe.payloads.res.ResponseShowUsersNotNullAndNotUser;
 import alpha.payeasebe.repositories.ResetPasswordRepository;
 import alpha.payeasebe.repositories.UserRepository;
 import alpha.payeasebe.services.mail.MailService;
@@ -406,6 +409,15 @@ public class UserServicesImpl implements UserServices {
         }
 
         return ResponseHandler.responseMessage(200, "PIN match", true);
+    }
+
+    @Override
+    public ResponseEntity<?> getUserPhoneNotNullAndNotSender(String id) {
+      
+
+         List<ResponseShowUsersNotNullAndNotUser> userListNotSender = new ArrayList<>();
+         userListNotSender.addAll(userRepository.getUserNotNull(id));
+         return ResponseHandler.responseData(200, "User yang not null nomornya", userListNotSender);
     }
 
 }
