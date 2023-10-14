@@ -314,4 +314,22 @@ public class TransactionServiceImpl implements TransactionsService {
                 "Get " + user.getFirstName() + " " + user.getLastName() + " transaction history success",
                 transactionHistories);
     }
+
+    // @Override
+    // public ResponseEntity<?> getTransactionByUserId(String userId) {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'getTransactionByUserId'");
+    // }
+
+    // @Override
+    // public ResponseEntity<?> getTransactionByUserId(String userId) {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'getTransactionByUserId'");
+    // }
+
+    // @Override
+    // public ResponseEntity<?> topUpService(TopUpRequest request) {
+    //     // TODO Auto-generated method stub
+    //     throw new UnsupportedOperationException("Unimplemented method 'topUpService'");
+    // }
 }
