@@ -27,6 +27,7 @@ public interface UserServices {
     ResponseEntity<?> changeUserPINService(ChangePINRequest request);
     ResponseEntity<?> changeUserPasswordService(ChangePasswordRequest request);
     ResponseEntity<?> getUserByIdService(String id);
+    ResponseEntity<?> getUserPhoneNotNullAndNotSender(String id);
     ResponseEntity<?> findUserByEmail(FindUserEmail request);
     ResponseEntity<?> storeImage(MultipartFile file, String newsId) throws IOException;
     ResponseEntity<?> checkTokenService(String token);

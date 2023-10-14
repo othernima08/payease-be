@@ -315,6 +315,19 @@ public class TransactionServiceImpl implements TransactionsService {
                 transactionHistories);
     }
 
+
+    @Override
+    public ResponseEntity<?> getTransactionByUserId(String userId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getTransactionByUserId'");
+    }
+
+    @Override
+    public ResponseEntity<?> topUpService(TopUpRequest request) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'topUpService'");
+    }
+
     // @Override
     // public ResponseEntity<?> getTransactionByUserId(String userId) {
     //     // TODO Auto-generated method stub
@@ -332,4 +345,5 @@ public class TransactionServiceImpl implements TransactionsService {
     //     // TODO Auto-generated method stub
     //     throw new UnsupportedOperationException("Unimplemented method 'topUpService'");
     // }
+
 }

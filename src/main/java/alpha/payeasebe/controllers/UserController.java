@@ -98,6 +98,11 @@ public class UserController {
         return userServices.addPhoneNumberService(request);
     }
 
+     @GetMapping("/user/{id}")
+    public ResponseEntity<?> getsUserPhoneNotNullAndNotSender(@PathVariable String id) {
+        return userServices.getUserPhoneNotNullAndNotSender(id);
+    }
+
     @DeleteMapping("/delete-phone-number/{userId}")
     public ResponseEntity<?> deleteUserPhoneNumber(@PathVariable String userId) {
         return userServices.deletePhoneNumberService(userId);
