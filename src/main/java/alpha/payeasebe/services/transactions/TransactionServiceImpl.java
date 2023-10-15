@@ -368,7 +368,25 @@ public class TransactionServiceImpl implements TransactionsService {
 
     @Override
     public ResponseEntity<?> getTopFiveTransactionByUserId(String userId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getTransactionByUserId'");
+        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
+
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        List<ResponseShowTransactionHistory> transactionHistories = new ArrayList<>();
+        transactionHistories.addAll(transactionsRepository.getTopUpByUserId(userId));
+        transactionHistories.addAll(transactionsRepository.getTransferFromHistoryByUserId(userId));
+        transactionHistories.addAll(transactionsRepository.getTransferToHistoryByUserId(userId));
+
+        Collections.sort(transactionHistories,
+                (history1, history2) -> history2.getTransaction_time().compareTo(history1.getTransaction_time()));
+
+        Integer limit = Math.min(5, transactionHistories.size()); // Make sure not to exceed the list size
+        List<ResponseShowTransactionHistory> top5TransactionHistories = transactionHistories.subList(0, limit);
+
+        return ResponseHandler.responseData(200,
+                "Get top five" + user.getFirstName() + " " + user.getLastName() + " transaction history success",
+                top5TransactionHistories);
     }
 }
