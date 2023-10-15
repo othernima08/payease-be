@@ -21,6 +21,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import alpha.payeasebe.configs.JwtUtil;
 import alpha.payeasebe.exceptions.custom.EntityFoundException;
+import alpha.payeasebe.models.OTP;
 import alpha.payeasebe.models.ResetToken;
 import alpha.payeasebe.models.User;
 import alpha.payeasebe.payloads.req.User.ChangePINRequest;
@@ -113,6 +114,7 @@ public class UserServicesImpl implements UserServices {
         Map<String, Object> data = new HashMap<>();
         data.put("id", user.getId());
         data.put("token", token);
+
 
         return ResponseHandler.responseData(200, "Success login!", data);
     }
@@ -419,5 +421,7 @@ public class UserServicesImpl implements UserServices {
          userListNotSender.addAll(userRepository.getUserNotNull(id));
          return ResponseHandler.responseData(200, "User yang not null nomornya", userListNotSender);
     }
+
+
 
 }

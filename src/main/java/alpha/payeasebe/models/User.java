@@ -71,6 +71,9 @@ public class User {
     @JsonIgnore
     private Boolean isDeleted = false;
 
+    
+    private Boolean isVerified = false;
+
 
     @OneToMany(mappedBy = "user")
     private List<ResetToken> resetTokens = new ArrayList<>();
