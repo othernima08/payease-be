@@ -3,6 +3,7 @@ package alpha.payeasebe.configs;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -51,6 +52,8 @@ public class SecurityConfig {
                     .requestMatchers("/users/find-email-reset").permitAll()
                     .requestMatchers("/users/reset-password").permitAll()
                     .requestMatchers("/users/change-password").permitAll()
+                    .requestMatchers("/users/update-image/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/users/image/**").permitAll()
                     .requestMatchers("/otp/**").permitAll()
                     .requestMatchers("/providers/**").permitAll()
                     .requestMatchers("/transaction-categories/**").permitAll()

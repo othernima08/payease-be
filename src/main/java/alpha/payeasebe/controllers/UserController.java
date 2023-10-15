@@ -93,6 +93,11 @@ public class UserController {
         return userServices.storeImage(file, userId);
     }
 
+    @GetMapping("/update-image/{userId}")
+    public ResponseEntity<?> getImageService(@PathVariable String userId) throws IOException{
+        return userServices.loadImage(userId);
+    }
+
     @PutMapping("/add-phone-number")
     public ResponseEntity<?> addPhoneNumberService(@RequestBody @Valid CreatePhoneNumberRequest request) {
         return userServices.addPhoneNumberService(request);

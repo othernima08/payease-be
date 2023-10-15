@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -286,13 +288,17 @@ public class UserServicesImpl implements UserServices {
         if (user.getIsDeleted()) {
             throw new NoSuchElementException("User is not active or already deleted");
         }
+        // ambil nama gambar
+        String imgName = StringUtils.cleanPath(file.getOriginalFilename());
 
+        user.setImageName(imgName);
+        userRepository.save(user);
         user.setPictureProfile(file.getBytes());
         userRepository.save(user);
 
         String sharedUrl = ServletUriComponentsBuilder
                 .fromCurrentContextPath() // localhost
-                .path("/users/update-image") // Ubah ini sesuai dengan path Anda
+                .path("/users/update-image/") // Ubah ini sesuai dengan path Anda
                 .path(user.getId()) // ID pengguna
                 .toUriString();
 
@@ -300,6 +306,15 @@ public class UserServicesImpl implements UserServices {
         user.setSharedUrl(sharedUrl);
         userRepository.save(user);
         return ResponseHandler.responseData(201, "success", user);
+    }
+
+    @Override
+    public ResponseEntity<?> loadImage(String userId) throws IOException{
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("user tidak ditemukan"));
+        return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + user.getImageName() + "\"")
+        .body(user.getSharedUrl());
     }
 
     // @Override

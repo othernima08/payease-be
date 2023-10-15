@@ -58,7 +58,8 @@ public class User {
     @JsonIgnore
     private byte[] pictureProfile;
 
-    private String sharedUrl = null;
+    private String imageName;
+    private String sharedUrl;
 
     @JsonIgnore
     @CreationTimestamp
