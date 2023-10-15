@@ -50,11 +50,11 @@ public class OTPServicesImpl implements OTPServices {
         otpRepository.save(otp);
 
          StringBuilder buildMessageMail = new StringBuilder();
-        buildMessageMail.append("To verify your password, please check your email by to veryfiy this otp: ");
+        buildMessageMail.append("To verify your account, please check your email by to verify this otp on URL: ");
         buildMessageMail.append(
                 "http://localhost:5173/otp");
         buildMessageMail.append(
-                " Your OTP CODE IS : " + otp.getOtpCode());
+                " YOUR OTP CODE IS : " + otp.getOtpCode());
         mailService.sendMail(new MailRequest(user.getEmail(), "OTP Code To Verify Your Account!", buildMessageMail.toString()));
         return ResponseHandler.responseMessage(200, "Generate OTP success!", true);
     }
