@@ -68,4 +68,9 @@ public class TransactionsController {
     public ResponseEntity<?> getTopFiveUserTransactionHistory(@PathVariable String userId) {
         return transactionsService.getTopFiveTransactionByUserId(userId);
     }
+
+    @GetMapping("/transaction-history-filter-date")
+    public ResponseEntity<?> getTransactionHistoryByUserIdAndDate(@RequestParam String userId, @RequestParam String startDate, @RequestParam String endDate) {
+        return transactionsService.getTransactionHistoryByUserIdAndDateTimeService(userId, startDate, endDate);
+    }
 }

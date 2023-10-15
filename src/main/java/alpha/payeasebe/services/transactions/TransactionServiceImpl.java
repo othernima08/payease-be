@@ -3,13 +3,16 @@ package alpha.payeasebe.services.transactions;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -388,5 +391,43 @@ public class TransactionServiceImpl implements TransactionsService {
         return ResponseHandler.responseData(200,
                 "Get top five" + user.getFirstName() + " " + user.getLastName() + " transaction history success",
                 top5TransactionHistories);
+    }
+
+    @Override
+    public ResponseEntity<?> getTransactionHistoryByUserIdAndDateTimeService(String userId, String startDate,
+            String endDate) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
+
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, d MMM yyyy", Locale.ENGLISH);
+
+        LocalDate start = LocalDate.parse(startDate, formatter);
+        LocalDate end = LocalDate.parse(endDate, formatter);
+
+        if (end.isBefore(start)) {
+            throw new IllegalArgumentException("End date must be greater than start date");
+        }
+
+        List<ResponseShowTransactionHistory> transactionHistories = new ArrayList<>();
+        transactionHistories.addAll(transactionsRepository.getTopUpByUserId(userId));
+        transactionHistories.addAll(transactionsRepository.getTransferFromHistoryByUserId(userId));
+        transactionHistories.addAll(transactionsRepository.getTransferToHistoryByUserId(userId));
+
+        List<ResponseShowTransactionHistory> filteredHistories = transactionHistories.stream()
+                .filter(history -> {
+                    LocalDate transactionDate = history.getTransaction_time().toLocalDate();
+                    return !transactionDate.isBefore(start) && !transactionDate.isAfter(end);
+                })
+                .collect(Collectors.toList());
+
+        Collections.sort(filteredHistories,
+                (history1, history2) -> history2.getTransaction_time().compareTo(history1.getTransaction_time()));
+
+        return ResponseHandler.responseData(200,
+                "Get " + user.getFirstName() + " " + user.getLastName() + " transaction history by selected date range success",
+                filteredHistories);
     }
 }
