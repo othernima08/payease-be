@@ -292,7 +292,7 @@ public class UserServicesImpl implements UserServices {
 
         String sharedUrl = ServletUriComponentsBuilder
                 .fromCurrentContextPath() // localhost
-                .path("/users/update-image") // Ubah ini sesuai dengan path Anda
+                .path("/users/update-image/") // Ubah ini sesuai dengan path Anda
                 .path(user.getId()) // ID pengguna
                 .toUriString();
 
