@@ -37,7 +37,6 @@ public class TransactionsController {
         return transactionsService.transferService(request);
     }
 
-    
     @GetMapping("/transfer/{id}")
     public ResponseEntity<?> transferDetailById(@PathVariable String id) {
         return transactionsService.transferDetail(id);
@@ -72,5 +71,10 @@ public class TransactionsController {
     @GetMapping("/transaction-history-filter-date")
     public ResponseEntity<?> getTransactionHistoryByUserIdAndDate(@RequestParam String userId, @RequestParam String startDate, @RequestParam String endDate) {
         return transactionsService.getTransactionHistoryByUserIdAndDateTimeService(userId, startDate, endDate);
+    }
+
+    @GetMapping("/amount-income-expense-user/{userId}")
+    public ResponseEntity<?> getUserIncomesExpensesAmount(@PathVariable String userId) {
+        return transactionsService.getIncomesAndExpensesAmountByUserId(userId);
     }
 }

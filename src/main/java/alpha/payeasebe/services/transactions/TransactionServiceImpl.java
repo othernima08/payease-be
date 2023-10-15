@@ -385,7 +385,7 @@ public class TransactionServiceImpl implements TransactionsService {
         Collections.sort(transactionHistories,
                 (history1, history2) -> history2.getTransaction_time().compareTo(history1.getTransaction_time()));
 
-        Integer limit = Math.min(5, transactionHistories.size()); // Make sure not to exceed the list size
+        Integer limit = Math.min(5, transactionHistories.size());
         List<ResponseShowTransactionHistory> top5TransactionHistories = transactionHistories.subList(0, limit);
 
         return ResponseHandler.responseData(200,
@@ -427,7 +427,45 @@ public class TransactionServiceImpl implements TransactionsService {
                 (history1, history2) -> history2.getTransaction_time().compareTo(history1.getTransaction_time()));
 
         return ResponseHandler.responseData(200,
-                "Get " + user.getFirstName() + " " + user.getLastName() + " transaction history by selected date range success",
+                "Get " + user.getFirstName() + " " + user.getLastName()
+                        + " transaction history by selected date range success",
                 filteredHistories);
+    }
+
+    @Override
+    public ResponseEntity<?> getIncomesAndExpensesAmountByUserId(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
+
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        List<ResponseShowTransactionHistory> transactionHistories = new ArrayList<>();
+        transactionHistories.addAll(transactionsRepository.getTopUpByUserId(userId));
+        transactionHistories.addAll(transactionsRepository.getTransferFromHistoryByUserId(userId));
+        transactionHistories.addAll(transactionsRepository.getTransferToHistoryByUserId(userId));
+
+        Collections.sort(transactionHistories,
+                (history1, history2) -> history2.getTransaction_time().compareTo(history1.getTransaction_time()));
+
+        Double incomeAmount = 0.;
+        Double expenseAmount= 0.;
+
+        for (ResponseShowTransactionHistory transactionHistory : transactionHistories) {
+            if (transactionHistory.getType() == "Transfer to" || transactionHistory.getType().equals("Transfer to")) {
+                expenseAmount += transactionHistory.getAmount();
+            } else {
+                incomeAmount += transactionHistory.getAmount();
+            }
+        }
+
+        Map<String,Double> userIncomesExpensesAmount = new HashMap<>();
+        userIncomesExpensesAmount.put("incomes", incomeAmount);
+        userIncomesExpensesAmount.put("expenses", expenseAmount);
+        
+        return ResponseHandler.responseData(200,
+                "Get " + user.getFirstName() + " " + user.getLastName()
+                        + " user incomes and expenses amount success",
+                userIncomesExpensesAmount);
     }
 }
