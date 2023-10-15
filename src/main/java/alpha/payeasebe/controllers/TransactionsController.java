@@ -42,8 +42,7 @@ public class TransactionsController {
     public ResponseEntity<?> transferDetailById(@PathVariable String id) {
         return transactionsService.transferDetail(id);
     }
-
-    
+   
 
     @GetMapping("/top-up-history/{userId}")
     public ResponseEntity<?> getTopUpHistoryByUserId(@PathVariable String userId) {
@@ -63,5 +62,10 @@ public class TransactionsController {
     @GetMapping("/transaction-history")
     public ResponseEntity<?> getTransactionHistoryByUserIdAndType(@RequestParam String userId, @RequestParam Boolean isIncome) {
         return transactionsService.getTransactionHistoryByUserIdAndTypeService(userId, isIncome);
+    }
+
+    @GetMapping("/top-five-transaction-history/{userId}")
+    public ResponseEntity<?> getTopFiveUserTransactionHistory(@PathVariable String userId) {
+        return transactionsService.getTopFiveTransactionByUserId(userId);
     }
 }

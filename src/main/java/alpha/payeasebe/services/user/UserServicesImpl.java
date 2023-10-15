@@ -21,7 +21,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import alpha.payeasebe.configs.JwtUtil;
 import alpha.payeasebe.exceptions.custom.EntityFoundException;
-import alpha.payeasebe.models.OTP;
 import alpha.payeasebe.models.ResetToken;
 import alpha.payeasebe.models.User;
 import alpha.payeasebe.payloads.req.User.ChangePINRequest;
@@ -35,7 +34,6 @@ import alpha.payeasebe.payloads.req.User.VerifyPINRequest;
 import alpha.payeasebe.payloads.req.FindUserEmail;
 import alpha.payeasebe.payloads.req.MailRequest;
 import alpha.payeasebe.payloads.res.ResponseHandler;
-import alpha.payeasebe.payloads.res.ResponseShowTransactionHistory;
 import alpha.payeasebe.payloads.res.ResponseShowUsersNotNullAndNotUser;
 import alpha.payeasebe.repositories.ResetPasswordRepository;
 import alpha.payeasebe.repositories.UserRepository;
@@ -114,7 +112,6 @@ public class UserServicesImpl implements UserServices {
         Map<String, Object> data = new HashMap<>();
         data.put("id", user.getId());
         data.put("token", token);
-
 
         return ResponseHandler.responseData(200, "Success login!", data);
     }
@@ -304,7 +301,7 @@ public class UserServicesImpl implements UserServices {
         userRepository.save(user);
         return ResponseHandler.responseData(201, "success", user);
     }
-    
+
     // @Override
     // public ResponseEntity<?> storeImage(MultipartFile file, String newsId) throws
     // IOException {
@@ -415,13 +412,9 @@ public class UserServicesImpl implements UserServices {
 
     @Override
     public ResponseEntity<?> getUserPhoneNotNullAndNotSender(String id) {
-      
-
-         List<ResponseShowUsersNotNullAndNotUser> userListNotSender = new ArrayList<>();
-         userListNotSender.addAll(userRepository.getUserNotNull(id));
-         return ResponseHandler.responseData(200, "User yang not null nomornya", userListNotSender);
+        List<ResponseShowUsersNotNullAndNotUser> userListNotSender = new ArrayList<>();
+        userListNotSender.addAll(userRepository.getUserNotNull(id));
+        return ResponseHandler.responseData(200, "User yang not null nomornya", userListNotSender);
     }
-
-
 
 }

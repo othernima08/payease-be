@@ -1,8 +1,11 @@
 package alpha.payeasebe.services.transactions;
 
 import java.security.SecureRandom;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,7 +110,7 @@ public class TransactionServiceImpl implements TransactionsService {
             throw new IllegalArgumentException("Insufficient balance");
         }
 
-        Transfers transfers = new Transfers(recipient, transactions, request.getNotes(),request.getTransactionTime());
+        Transfers transfers = new Transfers(recipient, transactions, request.getNotes(), request.getTransactionTime());
         transferRepository.save(transfers);
 
         if (!passwordEncoder.matches(request.getPin(), user.getPin())) {
@@ -127,20 +130,7 @@ public class TransactionServiceImpl implements TransactionsService {
         userRepository.save(recipient);
 
         return ResponseHandler.responseData(200,
-                "Transfer from " + user.getFirstName() + " " + user.getLastName() + " success", transfers.getId() );
-    }
-
-    @Override
-    public ResponseEntity<?> getTopUpHistoryByUserIdService(String userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
-
-        if (user.getIsDeleted()) {
-            throw new IllegalArgumentException("User is not active or already deleted");
-        }
-
-        List<ResponseShowTopUpHistory> topUpHistory = transactionsRepository.getTopUpHistoryByUserId(userId);
-
-        return ResponseHandler.responseData(200, "Get top up history data success", topUpHistory);
+                "Transfer from " + user.getFirstName() + " " + user.getLastName() + " success", transfers.getId());
     }
 
     @Override
@@ -149,10 +139,14 @@ public class TransactionServiceImpl implements TransactionsService {
             throw new NoSuchElementException("transfer not found");
         });
 
-          return ResponseHandler.responseData(200, "Get top up history data success", transfers);
+        return ResponseHandler.responseData(200, "Get top up history data success", transfers);
     }
 
     public ResponseEntity<?> topUpGenerateCodeService(TopUpRequest request) {
+        if (request.getAmount() < 10000.) {
+            throw new IllegalArgumentException("Minimum top up amount is Rp10000");
+        }
+
         Transactions transaction = createTransactionService(request.getUserId(), "Top Up", request.getAmount());
 
         String paymentCode = generatePaymentCode();
@@ -220,6 +214,23 @@ public class TransactionServiceImpl implements TransactionsService {
     }
 
     @Override
+    public ResponseEntity<?> getTopUpHistoryByUserIdService(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
+
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        List<ResponseShowTopUpHistory> topUpHistories = transactionsRepository.getTopUpHistoryByUserId(userId);
+
+        Map<String, List<ResponseShowTopUpHistory>> categorizedTransactions = categorizeTopUpHistory(topUpHistories);
+
+        return ResponseHandler.responseData(200,
+                "Get " + user.getFirstName() + " " + user.getLastName() + " top up history success",
+                categorizedTransactions);
+    }
+
+    @Override
     public ResponseEntity<?> getTopUpHistoryByUserIdAndStatusService(String userId, Boolean isDeleted) {
         User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
 
@@ -227,10 +238,14 @@ public class TransactionServiceImpl implements TransactionsService {
             throw new IllegalArgumentException("User is not active or already deleted");
         }
 
-        List<ResponseShowTopUpHistory> topUpHistory = transactionsRepository.getTopUpHistoryByUserIdAndStatus(userId,
+        List<ResponseShowTopUpHistory> topUpHistories = transactionsRepository.getTopUpHistoryByUserIdAndStatus(userId,
                 isDeleted);
 
-        return ResponseHandler.responseData(200, "Get top up history data success", topUpHistory);
+        Map<String, List<ResponseShowTopUpHistory>> categorizedTransactions = categorizeTopUpHistory(topUpHistories);
+
+        return ResponseHandler.responseData(200,
+                "Get " + user.getFirstName() + " " + user.getLastName() + " top up history success",
+                categorizedTransactions);
     }
 
     @Override
@@ -249,46 +264,13 @@ public class TransactionServiceImpl implements TransactionsService {
         Collections.sort(transactionHistories,
                 (history1, history2) -> history2.getTransaction_time().compareTo(history1.getTransaction_time()));
 
+        Map<String, List<ResponseShowTransactionHistory>> categorizedTransactions = categorizeTransactionHistory(
+                transactionHistories);
+
         return ResponseHandler.responseData(200,
                 "Get " + user.getFirstName() + " " + user.getLastName() + " transaction history success",
-                transactionHistories);
+                categorizedTransactions);
     }
-
-    // @Override
-    // public ResponseEntity<?> getIncomeTransactionHistoryByUserIdService(String userId) {
-    //     User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
-
-    //     if (user.getIsDeleted()) {
-    //         throw new IllegalArgumentException("User is not active or already deleted");
-    //     }
-
-    //     List<ResponseShowTransactionHistory> transactionHistories = new ArrayList<>();
-    //     transactionHistories.addAll(transactionsRepository.getTopUpByUserId(userId));
-    //     transactionHistories.addAll(transactionsRepository.getTransferFromHistoryByUserId(userId));
-
-    //     Collections.sort(transactionHistories,
-    //             (history1, history2) -> history2.getTransaction_time().compareTo(history1.getTransaction_time()));
-
-    //     return ResponseHandler.responseData(200,
-    //             "Get " + user.getFirstName() + " " + user.getLastName() + " income transaction history success",
-    //             transactionHistories);
-    // }
-
-    // @Override
-    // public ResponseEntity<?> getExpenseTransactionHistoryByUserIdService(String userId) {
-    //     User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
-
-    //     if (user.getIsDeleted()) {
-    //         throw new IllegalArgumentException("User is not active or already deleted");
-    //     }
-
-    //     List<ResponseShowTransactionHistory> transactionHistories = transactionsRepository
-    //             .getTransferToHistoryByUserId(userId);
-
-    //     return ResponseHandler.responseData(200,
-    //             "Get " + user.getFirstName() + " " + user.getLastName() + " transaction history success",
-    //             transactionHistories);
-    // }
 
     @Override
     public ResponseEntity<?> getTransactionHistoryByUserIdAndTypeService(String userId, Boolean isIncome) {
@@ -310,40 +292,101 @@ public class TransactionServiceImpl implements TransactionsService {
             transactionHistories.addAll(transactionsRepository.getTransferToHistoryByUserId(userId));
         }
 
+        Map<String, List<ResponseShowTransactionHistory>> categorizedTransactions = categorizeTransactionHistory(
+                transactionHistories);
+
         return ResponseHandler.responseData(200,
                 "Get " + user.getFirstName() + " " + user.getLastName() + " transaction history success",
-                transactionHistories);
+                categorizedTransactions);
     }
 
+    public Map<String, List<ResponseShowTransactionHistory>> categorizeTransactionHistory(
+            List<ResponseShowTransactionHistory> transactionHistories) {
+        LocalDate today = LocalDate.now();
+        LocalDate startOfWeek = today.minusDays(today.getDayOfWeek().getValue() - 1);
+        LocalDate startOfMonth = today.withDayOfMonth(1);
+
+        List<ResponseShowTransactionHistory> thisWeekTransactions = new ArrayList<>();
+        List<ResponseShowTransactionHistory> thisMonthTransactions = new ArrayList<>();
+        List<ResponseShowTransactionHistory> olderTransactions = new ArrayList<>();
+
+        for (ResponseShowTransactionHistory history : transactionHistories) {
+            Date transactionDate = Date.from(history.getTransaction_time().atZone(ZoneId.systemDefault()).toInstant());
+            LocalDate localTransactionDate = transactionDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            if (localTransactionDate.isEqual(today)) {
+                thisWeekTransactions.add(history);
+            } else if (localTransactionDate.isAfter(startOfWeek)) {
+                thisWeekTransactions.add(history);
+            } else if (localTransactionDate.isAfter(startOfMonth)) {
+                thisMonthTransactions.add(history);
+            } else {
+                olderTransactions.add(history);
+            }
+        }
+
+        Map<String, List<ResponseShowTransactionHistory>> categorizedTransactions = new HashMap<>();
+        categorizedTransactions.put("thisWeek", thisWeekTransactions);
+        categorizedTransactions.put("thisMonth", thisMonthTransactions);
+        categorizedTransactions.put("older", olderTransactions);
+
+        return categorizedTransactions;
+    }
+
+    public Map<String, List<ResponseShowTopUpHistory>> categorizeTopUpHistory(
+            List<ResponseShowTopUpHistory> topUpHistories) {
+        LocalDate today = LocalDate.now();
+        LocalDate startOfWeek = today.minusDays(today.getDayOfWeek().getValue() - 1);
+        LocalDate startOfMonth = today.withDayOfMonth(1);
+
+        List<ResponseShowTopUpHistory> thisWeekTransactions = new ArrayList<>();
+        List<ResponseShowTopUpHistory> thisMonthTransactions = new ArrayList<>();
+        List<ResponseShowTopUpHistory> olderTransactions = new ArrayList<>();
+
+        for (ResponseShowTopUpHistory history : topUpHistories) {
+            Date transactionDate = Date.from(history.getTransaction_time().atZone(ZoneId.systemDefault()).toInstant());
+            LocalDate localTransactionDate = transactionDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            if (localTransactionDate.isEqual(today)) {
+                thisWeekTransactions.add(history);
+            } else if (localTransactionDate.isAfter(startOfWeek)) {
+                thisWeekTransactions.add(history);
+            } else if (localTransactionDate.isAfter(startOfMonth)) {
+                thisMonthTransactions.add(history);
+            } else {
+                olderTransactions.add(history);
+            }
+        }
+
+        Map<String, List<ResponseShowTopUpHistory>> categorizedTransactions = new HashMap<>();
+        categorizedTransactions.put("thisWeek", thisWeekTransactions);
+        categorizedTransactions.put("thisMonth", thisMonthTransactions);
+        categorizedTransactions.put("older", olderTransactions);
+
+        return categorizedTransactions;
+    }
 
     @Override
-    public ResponseEntity<?> getTransactionByUserId(String userId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getTransactionByUserId'");
+    public ResponseEntity<?> getTopFiveTransactionByUserId(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
+
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        List<ResponseShowTransactionHistory> transactionHistories = new ArrayList<>();
+        transactionHistories.addAll(transactionsRepository.getTopUpByUserId(userId));
+        transactionHistories.addAll(transactionsRepository.getTransferFromHistoryByUserId(userId));
+        transactionHistories.addAll(transactionsRepository.getTransferToHistoryByUserId(userId));
+
+        Collections.sort(transactionHistories,
+                (history1, history2) -> history2.getTransaction_time().compareTo(history1.getTransaction_time()));
+
+        Integer limit = Math.min(5, transactionHistories.size()); // Make sure not to exceed the list size
+        List<ResponseShowTransactionHistory> top5TransactionHistories = transactionHistories.subList(0, limit);
+
+        return ResponseHandler.responseData(200,
+                "Get top five" + user.getFirstName() + " " + user.getLastName() + " transaction history success",
+                top5TransactionHistories);
     }
-
-    @Override
-    public ResponseEntity<?> topUpService(TopUpRequest request) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'topUpService'");
-    }
-
-    // @Override
-    // public ResponseEntity<?> getTransactionByUserId(String userId) {
-    //     // TODO Auto-generated method stub
-    //     throw new UnsupportedOperationException("Unimplemented method 'getTransactionByUserId'");
-    // }
-
-    // @Override
-    // public ResponseEntity<?> getTransactionByUserId(String userId) {
-    //     // TODO Auto-generated method stub
-    //     throw new UnsupportedOperationException("Unimplemented method 'getTransactionByUserId'");
-    // }
-
-    // @Override
-    // public ResponseEntity<?> topUpService(TopUpRequest request) {
-    //     // TODO Auto-generated method stub
-    //     throw new UnsupportedOperationException("Unimplemented method 'topUpService'");
-    // }
-
 }
