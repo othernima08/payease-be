@@ -7,5 +7,6 @@ public interface ResponseShowUsersNotNullAndNotUser {
         String getFirst_Name();
         String getLast_Name();
         String getPhone_Number();
-           String getProfile_Picture_Url();
+        String getProfile_Picture_Url();
+        String getShared_Url();
 }
