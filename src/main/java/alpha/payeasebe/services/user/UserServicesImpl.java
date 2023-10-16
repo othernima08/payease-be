@@ -314,38 +314,8 @@ public class UserServicesImpl implements UserServices {
                 .orElseThrow(() -> new NoSuchElementException("user tidak ditemukan"));
         return ResponseEntity.ok()
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + user.getImageName() + "\"")
-        .body(user.getSharedUrl());
+        .body(user.getPictureProfile());
     }
-
-    // @Override
-    // public ResponseEntity<?> storeImage(MultipartFile file, String newsId) throws
-    // IOException {
-    // // ambil nama gambar
-    // String imgName = StringUtils.cleanPath(file.getOriginalFilename());
-    // // cari entitas news
-    // News news = newsRepository.findById(newsId).orElseThrow(()
-    // -> new NoSuchElementException("news tidak ditemukan"));
-
-    // // buatkan entitas image news
-    // StoreImage image = new StoreImage(imgName, file.getBytes(), news);
-    // imageRepository.save(image); // menyimpan id
-
-    // // buatkan sharedUrl
-    // /*
-    // * endpoint untuk upload: /admin/files/news -> POST
-    // * endpoint untuk load: /files/news/{uuidGambar} ->GET
-    // */
-    // String sharedUrl = ServletUriComponentsBuilder
-    // .fromCurrentContextPath() // localhost:9098
-    // .path("/files/news/")
-    // .path(image.getId()) // id gambar
-    // .toUriString();
-
-    // // set sharedurl ke obj image news
-    // image.setSharedUrl(sharedUrl);
-    // imageRepository.save(image);
-    // return ResponseHandler.responseData(201, "success", image);
-    // }
 
     public ResponseEntity<?> addPhoneNumberService(CreatePhoneNumberRequest request) {
         User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {
