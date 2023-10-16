@@ -52,8 +52,10 @@ public class SecurityConfig {
                     .requestMatchers("/users/find-email-reset").permitAll()
                     .requestMatchers("/users/reset-password").permitAll()
                     .requestMatchers("/users/change-password").permitAll()
+              
                     .requestMatchers("/users/update-image").permitAll()
                     .requestMatchers(HttpMethod.GET, "/users/update-image/**").permitAll()
+
                     .requestMatchers("/otp/**").permitAll()
                     .requestMatchers("/providers/**").permitAll()
                     .requestMatchers("/transaction-categories/**").permitAll()
