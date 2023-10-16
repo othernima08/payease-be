@@ -147,8 +147,9 @@ public class TransactionServiceImpl implements TransactionsService {
     }
 
     public ResponseEntity<?> topUpGenerateCodeService(TopUpRequest request) {
-        if (request.getAmount() < 10000.) {
-            throw new IllegalArgumentException("Minimum top up amount is Rp10000");
+        double amount = request.getAmount();
+        if (amount < 10000 || amount > 10000000 || amount <= 0) {
+            throw new IllegalArgumentException("Top up amount must be between 10,000 and 10,000,000 and cannot be 0 or negative");
         }
 
         Transactions transaction = createTransactionService(request.getUserId(), "Top Up", request.getAmount());
@@ -185,6 +186,12 @@ public class TransactionServiceImpl implements TransactionsService {
 
         if (user.getIsDeleted()) {
             throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        if (transaction.getAmount() < 10000) {
+            throw new IllegalArgumentException("Minimum top upzzz amount is Rp10000");
+        } else if (transaction.getAmount() > 10000000) {
+            throw new IllegalArgumentException("Maximum top up amount is Rp10000000");
         }
 
         transaction.setAlreadyDone(true);
