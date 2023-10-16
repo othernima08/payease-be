@@ -3,13 +3,17 @@ package alpha.payeasebe.services.transactions;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -382,11 +386,138 @@ public class TransactionServiceImpl implements TransactionsService {
         Collections.sort(transactionHistories,
                 (history1, history2) -> history2.getTransaction_time().compareTo(history1.getTransaction_time()));
 
-        Integer limit = Math.min(5, transactionHistories.size()); // Make sure not to exceed the list size
+        Integer limit = Math.min(5, transactionHistories.size());
         List<ResponseShowTransactionHistory> top5TransactionHistories = transactionHistories.subList(0, limit);
 
         return ResponseHandler.responseData(200,
                 "Get top five" + user.getFirstName() + " " + user.getLastName() + " transaction history success",
                 top5TransactionHistories);
+    }
+
+    @Override
+    public ResponseEntity<?> getTransactionHistoryByUserIdAndDateTimeService(String userId, String startDate,
+            String endDate) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
+
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, d MMM yyyy", Locale.ENGLISH);
+
+        LocalDate start = LocalDate.parse(startDate, formatter);
+        LocalDate end = LocalDate.parse(endDate, formatter);
+
+        if (end.isBefore(start)) {
+            throw new IllegalArgumentException("End date must be greater than start date");
+        }
+
+        List<ResponseShowTransactionHistory> transactionHistories = new ArrayList<>();
+        transactionHistories.addAll(transactionsRepository.getTopUpByUserId(userId));
+        transactionHistories.addAll(transactionsRepository.getTransferFromHistoryByUserId(userId));
+        transactionHistories.addAll(transactionsRepository.getTransferToHistoryByUserId(userId));
+
+        List<ResponseShowTransactionHistory> filteredHistories = transactionHistories.stream()
+                .filter(history -> {
+                    LocalDate transactionDate = history.getTransaction_time().toLocalDate();
+                    return !transactionDate.isBefore(start) && !transactionDate.isAfter(end);
+                })
+                .collect(Collectors.toList());
+
+        Collections.sort(filteredHistories,
+                (history1, history2) -> history2.getTransaction_time().compareTo(history1.getTransaction_time()));
+
+        return ResponseHandler.responseData(200,
+                "Get " + user.getFirstName() + " " + user.getLastName()
+                        + " transaction history by selected date range success",
+                filteredHistories);
+    }
+
+    @Override
+    public ResponseEntity<?> getIncomesAndExpensesAmountByUserId(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User is not found"));
+
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        List<ResponseShowTransactionHistory> transactionHistories = new ArrayList<>();
+        transactionHistories.addAll(transactionsRepository.getTopUpByUserId(userId));
+        transactionHistories.addAll(transactionsRepository.getTransferFromHistoryByUserId(userId));
+        transactionHistories.addAll(transactionsRepository.getTransferToHistoryByUserId(userId));
+
+        Collections.sort(transactionHistories,
+                (history1, history2) -> history2.getTransaction_time().compareTo(history1.getTransaction_time()));
+
+        Double incomeAmount = 0.;
+        Double expenseAmount = 0.;
+
+        for (ResponseShowTransactionHistory transactionHistory : transactionHistories) {
+            if (transactionHistory.getType() == "Transfer to" || transactionHistory.getType().equals("Transfer to")) {
+                expenseAmount += transactionHistory.getAmount();
+            } else {
+                incomeAmount += transactionHistory.getAmount();
+            }
+        }
+
+        Map<String, Double> userIncomesExpensesAmount = new HashMap<>();
+        userIncomesExpensesAmount.put("incomes", incomeAmount);
+        userIncomesExpensesAmount.put("expenses", expenseAmount);
+
+        return ResponseHandler.responseData(200,
+                "Get " + user.getFirstName() + " " + user.getLastName()
+                        + " user incomes and expenses amount success",
+                userIncomesExpensesAmount);
+    }
+
+    @Override
+    public ResponseEntity<?> getTransactionHistoryByUserIdAndDays(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User is not found"));
+
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        List<ResponseShowTransactionHistory> transactionHistories = new ArrayList<>();
+        transactionHistories.addAll(transactionsRepository.getTopUpByUserId(userId));
+        transactionHistories.addAll(transactionsRepository.getTransferFromHistoryByUserId(userId));
+        transactionHistories.addAll(transactionsRepository.getTransferToHistoryByUserId(userId));
+
+        Collections.sort(transactionHistories,
+                (history1, history2) -> history2.getTransaction_time().compareTo(history1.getTransaction_time()));
+
+        // map perhari
+        Map<String, Map<String, Double>> dailyData = new LinkedHashMap<>();
+        String[] daysOfWeek = { "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY" };
+        for (String day : daysOfWeek) {
+            Map<String, Double> dayData = new HashMap<>();
+            dayData.put("income", 0.0);
+            dayData.put("expense", 0.0);
+            dailyData.put(day, dayData);
+        }
+
+        // data perhari dari riwayat transaksi
+        for (ResponseShowTransactionHistory transaction : transactionHistories) {
+            String dayOfWeek = transaction.getTransaction_time().getDayOfWeek().toString();
+            Map<String, Double> dayData = dailyData.get(dayOfWeek);
+            if (transaction.getType().equals("Transfer to")) {
+                dayData.put("expense", dayData.get("expense") + transaction.getAmount());
+            } else {
+                dayData.put("income", dayData.get("income") + transaction.getAmount());
+            }
+        }
+
+        // map response nya sesuai format hari
+        Map<String, Object> responseData = new HashMap<>();
+        for (Map.Entry<String, Map<String, Double>> entry : dailyData.entrySet()) {
+            String day = entry.getKey();
+            Map<String, Double> dayData = entry.getValue();
+            Map<String, Double> formattedData = new HashMap<>();
+            formattedData.put("income", dayData.get("income"));
+            formattedData.put("expense", dayData.get("expense"));
+            responseData.put(day, formattedData);
+        }
+        return ResponseHandler.responseData(200, "Get daily income and expense for user success", responseData);
     }
 }
