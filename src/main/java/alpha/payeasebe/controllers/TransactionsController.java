@@ -77,4 +77,9 @@ public class TransactionsController {
     public ResponseEntity<?> getUserIncomesExpensesAmount(@PathVariable String userId) {
         return transactionsService.getIncomesAndExpensesAmountByUserId(userId);
     }
+
+    @GetMapping("/transaction-history-daily/{userId}")
+    public ResponseEntity<?> getTransactionHistoryByUserIdAndDays(@PathVariable String userId) {
+        return transactionsService.getTransactionHistoryByUserIdAndDays(userId);
+    }
 }

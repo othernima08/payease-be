@@ -23,6 +23,7 @@ public interface TransactionsService {
     ResponseEntity<?> getTransactionHistoryByUserIdService(String userId);
     ResponseEntity<?> getTransactionHistoryByUserIdAndTypeService(String userId, Boolean isIncome);
     ResponseEntity<?> getTransactionHistoryByUserIdAndDateTimeService(String userId, String startDate, String endDate);
+    ResponseEntity<?> getTransactionHistoryByUserIdAndDays(String userId);
 
     ResponseEntity<?> getIncomesAndExpensesAmountByUserId(String userId);
 }
