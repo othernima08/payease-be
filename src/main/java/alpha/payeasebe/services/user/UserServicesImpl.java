@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -286,7 +288,11 @@ public class UserServicesImpl implements UserServices {
         if (user.getIsDeleted()) {
             throw new NoSuchElementException("User is not active or already deleted");
         }
+        // ambil nama gambar
+        String imgName = StringUtils.cleanPath(file.getOriginalFilename());
 
+        user.setImageName(imgName);
+        userRepository.save(user);
         user.setPictureProfile(file.getBytes());
         userRepository.save(user);
 
@@ -302,35 +308,14 @@ public class UserServicesImpl implements UserServices {
         return ResponseHandler.responseData(201, "success", user);
     }
 
-    // @Override
-    // public ResponseEntity<?> storeImage(MultipartFile file, String newsId) throws
-    // IOException {
-    // // ambil nama gambar
-    // String imgName = StringUtils.cleanPath(file.getOriginalFilename());
-    // // cari entitas news
-    // News news = newsRepository.findById(newsId).orElseThrow(()
-    // -> new NoSuchElementException("news tidak ditemukan"));
-
-    // // buatkan entitas image news
-    // StoreImage image = new StoreImage(imgName, file.getBytes(), news);
-    // imageRepository.save(image); // menyimpan id
-
-    // // buatkan sharedUrl
-    // /*
-    // * endpoint untuk upload: /admin/files/news -> POST
-    // * endpoint untuk load: /files/news/{uuidGambar} ->GET
-    // */
-    // String sharedUrl = ServletUriComponentsBuilder
-    // .fromCurrentContextPath() // localhost:9098
-    // .path("/files/news/")
-    // .path(image.getId()) // id gambar
-    // .toUriString();
-
-    // // set sharedurl ke obj image news
-    // image.setSharedUrl(sharedUrl);
-    // imageRepository.save(image);
-    // return ResponseHandler.responseData(201, "success", image);
-    // }
+    @Override
+    public ResponseEntity<?> loadImage(String userId) throws IOException{
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("user tidak ditemukan"));
+        return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + user.getImageName() + "\"")
+        .body(user.getPictureProfile());
+    }
 
     public ResponseEntity<?> addPhoneNumberService(CreatePhoneNumberRequest request) {
         User user = userRepository.findById(request.getUserId()).orElseThrow(() -> {

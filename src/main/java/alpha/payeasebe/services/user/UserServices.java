@@ -29,8 +29,10 @@ public interface UserServices {
     ResponseEntity<?> getUserByIdService(String id);
     ResponseEntity<?> getUserPhoneNotNullAndNotSender(String id);
     ResponseEntity<?> findUserByEmail(FindUserEmail request);
-    ResponseEntity<?> storeImage(MultipartFile file, String newsId) throws IOException;
     ResponseEntity<?> checkTokenService(String token);
     ResponseEntity<?> changePasswordService(String token, ResetPasswordRequest request);
-}
+
+    ResponseEntity<?> storeImage(MultipartFile file, String newsId) throws IOException;
+    ResponseEntity<?> loadImage(String UserId) throws IOException;
+}   
 
