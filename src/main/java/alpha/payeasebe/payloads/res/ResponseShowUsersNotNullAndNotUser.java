@@ -13,7 +13,7 @@ public interface ResponseShowUsersNotNullAndNotUser {
 
         String getPhone_Number();
 
-        String getProfile_Picture_Url();
-        String getShared_Url();
+        String getProfile_picture();
+        String getShared_url();
 
 }
