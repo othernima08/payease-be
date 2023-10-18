@@ -26,7 +26,8 @@ public class OTPServicesImpl implements OTPServices {
 
     @Autowired
     UserRepository userRepository;
-     @Autowired
+
+    @Autowired
     MailService mailService;
 
     @Autowired
@@ -43,19 +44,19 @@ public class OTPServicesImpl implements OTPServices {
 
         do {
             otpCode = generateOTP();
-        } while 
-        (otpRepository.existsByOtpCode(generateOTP())); 
+        } while (otpRepository.existsByOtpCode(generateOTP()));
 
-        OTP otp = new OTP(user, otpCode, LocalDateTime.now().plusMinutes(1));
+        OTP otp = new OTP(user, otpCode, LocalDateTime.now().plusMinutes(3));
         otpRepository.save(otp);
 
-         StringBuilder buildMessageMail = new StringBuilder();
+        StringBuilder buildMessageMail = new StringBuilder();
         buildMessageMail.append("To verify your account, please check your email by to verify this otp on URL: ");
         buildMessageMail.append(
                 "http://localhost:5173/otp");
         buildMessageMail.append(
                 " YOUR OTP CODE IS : " + otp.getOtpCode());
-        mailService.sendMail(new MailRequest(user.getEmail(), "OTP Code To Verify Your Account!", buildMessageMail.toString()));
+        mailService.sendMail(
+                new MailRequest(user.getEmail(), "OTP Code To Verify Your Account!", buildMessageMail.toString()));
         return ResponseHandler.responseMessage(200, "Generate OTP success!", true);
     }
 
@@ -65,11 +66,11 @@ public class OTPServicesImpl implements OTPServices {
 
         otpValidation.validateOTP(otp);
 
-        if (LocalDateTime.now().isAfter(otp.getExpiredAt()) ) {
+        if (LocalDateTime.now().isAfter(otp.getExpiredAt())) {
             throw new IllegalArgumentException("OTP Code is expired");
         }
 
-        User user  = userRepository.findByEmail(request.getEmailUser());
+        User user = userRepository.findByEmail(request.getEmailUser());
         user.setIsVerified(true);
         userRepository.save(user);
         return ResponseHandler.responseMessage(200, "OTP correct", true);
@@ -95,32 +96,32 @@ public class OTPServicesImpl implements OTPServices {
     
 }
 
+// if (!userRepository.existsByEmail(request.getEmail())) {
+// throw new NoSuchElementException("Email not found");
+// }
 
+// User user = userRepository.findByEmail(request.getEmail());
 
-//  if (!userRepository.existsByEmail(request.getEmail())) {
-//             throw new NoSuchElementException("Email not found");
-//         }
+// if (user.getIsDeleted()) {
+// throw new NoSuchElementException("User is not active or already deleted");
+// }
 
-//         User user = userRepository.findByEmail(request.getEmail());
+// ResetToken resetToken = new ResetToken(user);
 
-//         if (user.getIsDeleted()) {
-//             throw new NoSuchElementException("User is not active or already deleted");
-//         }
+// LocalDateTime now = LocalDateTime.now();
+// LocalDateTime expireDateTime = now.plusMinutes(5);
+// resetToken.setExpiryDateTime(expireDateTime);
 
-//         ResetToken resetToken = new ResetToken(user);
+// resetPasswordRepository.save(resetToken);
 
-//         LocalDateTime now = LocalDateTime.now();
-//         LocalDateTime expireDateTime = now.plusMinutes(5);
-//         resetToken.setExpiryDateTime(expireDateTime);
+// StringBuilder buildMessageMail = new StringBuilder();
+// buildMessageMail.append("To reset your password, please check your email by
+// click here: ");
+// buildMessageMail.append(
+// "http://localhost:5173/create-password/" + resetToken.getToken());
+// buildMessageMail.append(
+// " /n This link is expired in 5 minutes.");
+// mailService.sendMail(new MailRequest(user.getEmail(), "Reset your password!",
+// buildMessageMail.toString()));
 
-//         resetPasswordRepository.save(resetToken);
-
-//         StringBuilder buildMessageMail = new StringBuilder();
-//         buildMessageMail.append("To reset your password, please check your email by click here: ");
-//         buildMessageMail.append(
-//                 "http://localhost:5173/create-password/" + resetToken.getToken());
-//         buildMessageMail.append(
-//                 "    /n This link is expired in 5 minutes.");
-//         mailService.sendMail(new MailRequest(user.getEmail(), "Reset your password!", buildMessageMail.toString()));
-
-//         return ResponseHandler.responseData(201, "Password Reset Succesfull!", user);
+// return ResponseHandler.responseData(201, "Password Reset Succesfull!", user);
