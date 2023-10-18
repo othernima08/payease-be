@@ -2,27 +2,27 @@
 Repository for training fazztrack x BCA - ewallet project backend
 
 ## How to Run
-Untuk menjalankannya, clone dan jalankan perintah berikut:   
+To run it, clone and run the following commands:   
 1. Clone github: 
-    - pastikan anda telah menginstall git di pc anda.
-    - pilih folder tempat menyimpan clone repository ini.
-    - buka terminal/command prompt (klik kanan).
-    - jalankan perintah ````git clone https://github.com/othernima08/payease-be.git```.
-    - tunggu proses clone selesai dan repository sudah ada di folder anda.
+    - make sure you have installed git on your pc.
+    - select the folder where you want to save the clone repository.
+    - open terminal/command prompt (right-click).
+    - run the command ````git clone https://github.com/othernima08/payease-be.git```.
+    - wait for the clone process to finish and the repository is in your folder.
 
-2. web-server dan database configuration
-    - Jika anda ingin menjalankan spring boot di localhost, pastikan anda memiliki aplikasi seperti XAMPP sebagai web-server lokal
-    - jalankan apache
-    - masuk ke browser dan pergi ke halaman http://localhost/phpmyadmin
-    - buatlah database baru bernama "payease"
-    - karena ada beberapa data yang perlu di import pergi ke menu import, pilih select file.
-    - upload file transaction_categories.sql dan providers.sql yang ada di folder resources/sql
-    - selesai
+2. web-server and database configuration
+    - If you want to run spring boot on localhost, make sure you have an application like XAMPP as a local web-server
+    - run apache
+    - enter the browser and go to the page http://localhost/phpmyadmin
+    - create a new database named "payease"
+    - because there is some data that needs to be imported go to the import menu, select select file.
+    - upload the transaction_categories.sql and providers.sql files in the resources/sql folder
+    - done
 
 2. Run spring boot:
-    - Jika folder sudah tersimpan, silahkan buka folder tersebut menggunakan text editor (contoh: VS Code)
-    - jalankan perintah berikut ```mvnw spring-boot:run```
-    - program berhasil di jalankan.
+    - If the folder has been saved, please open the folder using a text editor (example: VS Code)
+    - run the following command ``mvnw spring-boot:run```
+    - the program runs successfully.
 
 ## List of Service Methods
 
@@ -68,11 +68,12 @@ Untuk menjalankannya, clone dan jalankan perintah berikut:
     userId={user id}
     isSuccess={true}
     }
+    
  - **User Transaction History By Date Range**:
     localhost:9090/transactions/transaction-history-filter-date?userId=ae7b4891-e4f3-456e-bcca-785afe0b3b4d&startDate=Tuesday, 03 Oct 2023&endDate=Sunday, 15 Oct 2023
 
 
-## Documentation API Online
-Untuk dokumentasi lengkap REST API dan contoh request body, anda dapat mengakses link berikut ini: **https://documenter.getpostman.com/view/18356226/2s9YR85ZDm**
+## Online API Documentation
+For complete REST API documentation and sample request bodies, you can access the following links: **https://documenter.getpostman.com/view/18356226/2s9YR85ZDm**
 
 ## Happy Coding~
