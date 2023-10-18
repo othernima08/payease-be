@@ -26,7 +26,7 @@ Untuk menjalankannya, clone dan jalankan perintah berikut:
 
 ## List of Service Methods
 
-1. ## USER ##:
+1. ## User :
     - **Register**: POST - localhost:9090/users/register
     - **Login**: POST - localhost:9090/users/login
     - **Get All Users**: Get - localhost:9090/users
@@ -41,7 +41,7 @@ Untuk menjalankannya, clone dan jalankan perintah berikut:
     - **Update Image**: PUT  localhost:9090/users/update-image?{useParams, userId, value {user id}}
     - **Get Image**: GET    - **Update Image**: PUT  localhost:9090/users/update-image/{image id}
 
-2. ## OTP ##:
+2. ## OTP :
     - **Register**: POST - localhost:9090/otp/generate
     - **Login**: PUT - localhost:9090/otp
 
