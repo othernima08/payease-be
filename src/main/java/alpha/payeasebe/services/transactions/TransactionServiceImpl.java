@@ -92,11 +92,14 @@ public class TransactionServiceImpl implements TransactionsService {
 
     @Override
     public ResponseEntity<?> transferService(TransferRequest request) {
-        Transactions transactions = createTransactionService(request.getUserId(), "Transfer", request.getAmount());
+        if (request.getAmount() < 10000. || request.getAmount() > 20000000.) {
+            throw new IllegalArgumentException("Minimum transfer amount is Rp 10.000 and maximum is Rp 20.000.000");
+        }
 
-        User user = transactions.getUser();
+        User sender = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new NoSuchElementException("User is not found"));
 
-        if (user.getIsDeleted()) {
+        if (sender.getIsDeleted()) {
             throw new IllegalArgumentException("User is not active or already deleted");
         }
 
@@ -107,7 +110,17 @@ public class TransactionServiceImpl implements TransactionsService {
             throw new IllegalArgumentException("User is not active or already deleted");
         }
 
-        if (user.getBalance() < request.getAmount()) {
+        Double senderBalance = sender.getBalance() - request.getAmount();
+        Double recipientBalance = recipient.getBalance() + request.getAmount();
+
+        if (senderBalance < 0. || recipientBalance > 20000000.) {
+            throw new IllegalArgumentException(
+                    "Bad request: minimum amount of user balance is Rp 0, and maximum is Rp 20.000.000");
+        }
+
+        Transactions transactions = createTransactionService(sender.getId(), "Transfer", request.getAmount());
+
+        if (sender.getBalance() < request.getAmount()) {
             transactions.setIsDeleted(true);
             transactionsRepository.save(transactions);
 
@@ -117,7 +130,7 @@ public class TransactionServiceImpl implements TransactionsService {
         Transfers transfers = new Transfers(recipient, transactions, request.getNotes(), request.getTransactionTime());
         transferRepository.save(transfers);
 
-        if (!passwordEncoder.matches(request.getPin(), user.getPin())) {
+        if (!passwordEncoder.matches(request.getPin(), sender.getPin())) {
             transactions.setIsDeleted(true);
             transactionsRepository.save(transactions);
 
@@ -127,28 +140,39 @@ public class TransactionServiceImpl implements TransactionsService {
         transactions.setAlreadyDone(true);
         transactionsRepository.save(transactions);
 
-        user.setBalance(user.getBalance() - request.getAmount());
-        userRepository.save(user);
+        sender.setBalance(sender.getBalance() - request.getAmount());
+        userRepository.save(sender);
 
         recipient.setBalance(recipient.getBalance() + request.getAmount());
         userRepository.save(recipient);
 
         return ResponseHandler.responseData(200,
-                "Transfer from " + user.getFirstName() + " " + user.getLastName() + " success", transfers.getId());
+                "Transfer from " + sender.getFirstName() + " " + sender.getLastName() + " success", transfers.getId());
     }
 
     @Override
     public ResponseEntity<?> transferDetail(String id) {
         Transfers transfers = transferRepository.findById(id).orElseThrow(() -> {
-            throw new NoSuchElementException("transfer not found");
+            throw new NoSuchElementException("Transfer not found");
         });
 
         return ResponseHandler.responseData(200, "Get top up history data success", transfers);
     }
 
     public ResponseEntity<?> topUpGenerateCodeService(TopUpRequest request) {
-        if (request.getAmount() < 10000.) {
-            throw new IllegalArgumentException("Minimum top up amount is Rp10000");
+        Double amount = request.getAmount();
+        if (amount < 10000 || amount > 10000000 || amount <= 0) {
+            throw new IllegalArgumentException("Top up amount must be between 10,000 and 10,000,000 and cannot be 0 or negative");
+        }
+
+        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new NoSuchElementException("User is not found"));
+        if (user.getIsDeleted()) {
+            throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        Double userBalance = user.getBalance() + amount;
+        if (userBalance > 20000000.) {
+            throw new IllegalArgumentException("Bad request: maximum amount is Rp 20.000.000");
         }
 
         Transactions transaction = createTransactionService(request.getUserId(), "Top Up", request.getAmount());
@@ -185,6 +209,17 @@ public class TransactionServiceImpl implements TransactionsService {
 
         if (user.getIsDeleted()) {
             throw new IllegalArgumentException("User is not active or already deleted");
+        }
+
+        if (transaction.getAmount() < 10000) {
+            throw new IllegalArgumentException("Minimum top up amount is Rp10000");
+        } else if (transaction.getAmount() > 10000000) {
+            throw new IllegalArgumentException("Maximum top up amount is Rp10000000");
+        }
+
+        Double userBalance = user.getBalance() + transaction.getAmount();
+        if (userBalance > 20000000.) {
+            throw new IllegalArgumentException("Bad request: Maximum amount is Rp 20.000.000");
         }
 
         transaction.setAlreadyDone(true);
